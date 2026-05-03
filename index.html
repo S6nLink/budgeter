@@ -3,49 +3,63 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>資産管理アプリ - ScanLink</title>
+    <title>資産管理アプリ - ScanLink Edition</title>
     <style>
         :root { --primary: #007bff; --success: #28a745; --bg: #f8f9fa; }
         body { font-family: sans-serif; background: var(--bg); margin: 0; padding: 15px; padding-bottom: 80px; }
         .card { background: white; padding: 15px; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         h2 { font-size: 1rem; margin-top: 0; color: #555; border-left: 4px solid var(--primary); padding-left: 10px; }
-        input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
+        input, select { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
         .btn { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
         .btn-sub { background: #6c757d; margin-top: 5px; }
         .summary-box { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
         .summary-item { background: #eef2f7; padding: 10px; border-radius: 8px; text-align: center; }
         .summary-label { font-size: 0.75rem; color: #666; }
         .summary-value { font-weight: bold; font-size: 1.1rem; }
+        .chart-container { margin-top: 20px; }
         .fixed-cost-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee; font-size: 0.9rem; }
     </style>
 </head>
 <body>
 
-    <!-- 目標セクション -->
+    <!-- 1. 表示・編集月の選択 -->
     <div class="card">
-        <h2>目標設定</h2>
+        <h2>対象年月の選択</h2>
+        <div style="display: flex; gap: 10px;">
+            <select id="select_year" onchange="loadData()"></select>
+            <select id="select_month" onchange="loadData()"></select>
+        </div>
+    </div>
+
+    <!-- 2. 目標・進捗 -->
+    <div class="card">
+        <h2>全体目標設定</h2>
         <input type="number" id="target_amount" placeholder="目標金額">
         <input type="date" id="target_date">
         <button class="btn btn-sub" onclick="saveTarget()">目標を更新</button>
     </div>
 
-    <!-- 今月のサマリ & 入力 -->
+    <!-- 3. 月次収支（サマリ表示 ＆ 編集入力） -->
     <div class="card">
-        <h2>収支サマリ: <span id="current_month_label"></span></h2>
+        <h2><span id="label_ym"></span> の収支サマリ</h2>
         <div class="summary-box">
-            <div class="summary-item"><div class="summary-label">収入</div><div id="sum_income" class="summary-value">¥0</div></div>
-            <div class="summary-item"><div class="summary-label">支出（固定費込）</div><div id="sum_expense" class="summary-value">¥0</div></div>
+            <div class="summary-item"><div class="summary-label">総収入</div><div id="sum_income" class="summary-value">¥0</div></div>
+            <div class="summary-item"><div class="summary-label">支出計(固定費込)</div><div id="sum_expense" class="summary-value">¥0</div></div>
+        </div>
+        <div class="chart-container">
+            <canvas id="summaryChart" height="220"></canvas>
         </div>
         <hr style="border: 0; border-top: 1px solid #eee; margin: 15px 0;">
-        <input type="number" id="income" placeholder="今月の総収入">
-        <input type="number" id="investment" placeholder="今月の投資額">
-        <input type="number" id="expense" placeholder="今月のその他支出">
-        <button class="btn" onclick="saveMonthly()">収支を保存</button>
+        <h2>データ編集</h2>
+        <input type="number" id="income" placeholder="この月の総収入">
+        <input type="number" id="investment" placeholder="この月の投資額">
+        <input type="number" id="expense" placeholder="この月のその他支出">
+        <button class="btn" onclick="saveMonthly()">この月のデータを保存・上書き</button>
     </div>
 
-    <!-- 固定費セクション -->
+    <!-- 4. 固定費管理（全月共通） -->
     <div class="card">
-        <h2>固定費 (家賃・サブスク等)</h2>
+        <h2>共通固定費 (家賃・サブスク等)</h2>
         <div id="fixed_costs_list"></div>
         <div style="display: flex; gap: 5px; margin-top: 10px;">
             <input type="text" id="fixed_name" placeholder="項目名" style="flex: 2;">
@@ -55,19 +69,64 @@
     </div>
 
     <script type="module">
-        // config.js から設定をインポート
         import { firebaseConfig } from './config.js';
-        
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
         import { getFirestore, doc, setDoc, getDoc, collection, addDoc, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+        import { Chart, DoughnutController, ArcElement, Tooltip, Legend } from 'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.esm.js';
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const userId = "scanlink_user";
-        const now = new Date();
-        const currentYM = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
 
-        document.getElementById('current_month_label').innerText = currentYM;
+        // 年月セレクトボックスの生成 (2016年から現在まで)
+        const yearSelect = document.getElementById('select_year');
+        const monthSelect = document.getElementById('select_month');
+        const now = new Date();
+        for(let y = 2016; y <= now.getFullYear(); y++) {
+            let opt = document.createElement('option');
+            opt.value = y; opt.innerText = y + "年";
+            if(y === now.getFullYear()) opt.selected = true;
+            yearSelect.appendChild(opt);
+        }
+        for(let m = 1; m <= 12; m++) {
+            let opt = document.createElement('option');
+            opt.value = String(m).padStart(2, '0'); opt.innerText = m + "月";
+            if(m === now.getMonth() + 1) opt.selected = true;
+            monthSelect.appendChild(opt);
+        }
+
+        const getSelectedYM = () => `${yearSelect.value}-${monthSelect.value}`;
+
+        Chart.register(DoughnutController, ArcElement, Tooltip, Legend);
+        let summaryChart = null;
+
+        const createSummaryChart = () => {
+            const ctx = document.getElementById('summaryChart').getContext('2d');
+            summaryChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['収入', '投資', 'その他支出', '固定費'],
+                    datasets: [{
+                        data: [0, 0, 0, 0],
+                        backgroundColor: ['#007bff', '#28a745', '#dc3545', '#ffc107'],
+                        borderColor: '#fff',
+                        borderWidth: 2,
+                    }]
+                },
+                options: {
+                    plugins: {
+                        legend: { position: 'bottom' },
+                        tooltip: { callbacks: { label: (ctx) => `${ctx.label}: ¥${ctx.parsed.toLocaleString()}` } }
+                    }
+                }
+            });
+        };
+
+        const updateSummaryChart = (income, investment, expense, fixed) => {
+            if (!summaryChart) createSummaryChart();
+            summaryChart.data.datasets[0].data = [income, investment, expense, fixed];
+            summaryChart.update();
+        };
 
         // 目標保存
         window.saveTarget = async () => {
@@ -83,32 +142,41 @@
             const price = Number(document.getElementById('fixed_price').value);
             if(!name || !price) return;
             await addDoc(collection(db, "fixed_costs"), { user_id: userId, name, price });
-            document.getElementById('fixed_name').value = "";
-            document.getElementById('fixed_price').value = "";
             loadData();
         };
 
-        // 収支保存
+        // 収支保存（上書き）
         window.saveMonthly = async () => {
+            const ym = getSelectedYM();
             const data = {
                 income: Number(document.getElementById('income').value),
                 investment: Number(document.getElementById('investment').value),
                 expense: Number(document.getElementById('expense').value),
                 updated_at: new Date()
             };
-            await setDoc(doc(db, "monthly_records", `${userId}_${currentYM}`), { ...data, user_id: userId, year_month: currentYM });
-            alert("保存しました");
+            await setDoc(doc(db, "monthly_records", `${userId}_${ym}`), { ...data, user_id: userId, year_month: ym });
+            alert(ym + " のデータを保存しました");
             loadData();
         };
 
-        // データ読み込み
-        async function loadData() {
+        // データ読み込み & 表示更新
+        window.loadData = async () => {
+            const ym = getSelectedYM();
+            document.getElementById('label_ym').innerText = ym;
+
+            // 目標・初期値のリセット
+            document.getElementById('income').value = "";
+            document.getElementById('investment').value = "";
+            document.getElementById('expense').value = "";
+
+            // 目標の読み込み
             const userSnap = await getDoc(doc(db, "users", userId));
             if (userSnap.exists()) {
                 document.getElementById('target_amount').value = userSnap.data().target_amount;
                 document.getElementById('target_date').value = userSnap.data().target_date;
             }
 
+            // 固定費の読み込み
             const q = query(collection(db, "fixed_costs"), where("user_id", "==", userId));
             const querySnapshot = await getDocs(q);
             let fixedTotal = 0;
@@ -120,13 +188,25 @@
                 listDiv.innerHTML += `<div class="fixed-cost-item"><span>${item.name}</span><span>¥${item.price.toLocaleString()}</span></div>`;
             });
 
-            const monthSnap = await getDoc(doc(db, "monthly_records", `${userId}_${currentYM}`));
+            // 選択された月のデータを読み込み
+            const monthSnap = await getDoc(doc(db, "monthly_records", `${userId}_${ym}`));
             if (monthSnap.exists()) {
                 const mData = monthSnap.data();
+                const totalExpense = mData.expense + fixedTotal;
                 document.getElementById('sum_income').innerText = `¥${mData.income.toLocaleString()}`;
-                document.getElementById('sum_expense').innerText = `¥${(mData.expense + fixedTotal).toLocaleString()}`;
+                document.getElementById('sum_expense').innerText = `¥${totalExpense.toLocaleString()}`;
+                // フォームに値をセット（編集用）
+                document.getElementById('income').value = mData.income;
+                document.getElementById('investment').value = mData.investment;
+                document.getElementById('expense').value = mData.expense;
+                updateSummaryChart(mData.income, mData.investment, mData.expense, fixedTotal);
+            } else {
+                document.getElementById('sum_income').innerText = "¥0";
+                document.getElementById('sum_expense').innerText = `¥${fixedTotal.toLocaleString()} (固定費のみ)`;
+                updateSummaryChart(0, 0, 0, fixedTotal);
             }
         }
+
         loadData();
     </script>
 </body>
