@@ -5,60 +5,129 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>資産管理アプリ - ScanLink</title>
     <style>
-        body { font-family: sans-serif; padding: 20px; background: #f4f4f9; color: #333; }
-        .card { background: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        h2 { margin-top: 0; font-size: 1.2em; }
-        input { width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
-        button { width: 100%; padding: 12px; background: #007bff; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
-        .progress-bar { height: 20px; background: #eee; border-radius: 10px; overflow: hidden; }
-        .progress-fill { height: 100%; background: #28a745; width: 0%; transition: width 0.5s; }
+        :root { --primary: #007bff; --success: #28a745; --bg: #f8f9fa; }
+        body { font-family: sans-serif; background: var(--bg); margin: 0; padding: 15px; padding-bottom: 80px; }
+        .card { background: white; padding: 15px; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        h2 { font-size: 1rem; margin-top: 0; color: #555; border-left: 4px solid var(--primary); padding-left: 10px; }
+        input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
+        .btn { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        .btn-sub { background: #6c757d; margin-top: 5px; }
+        .summary-box { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+        .summary-item { background: #eef2f7; padding: 10px; border-radius: 8px; text-align: center; }
+        .summary-label { font-size: 0.75rem; color: #666; }
+        .summary-value { font-weight: bold; font-size: 1.1rem; }
+        .fixed-cost-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee; font-size: 0.9rem; }
     </style>
 </head>
 <body>
 
+    <!-- 目標セクション -->
     <div class="card">
-        <h2>今月の収支入力</h2>
-        <input type="number" id="income" placeholder="収入合計">
-        <input type="number" id="investment" placeholder="投資・運用額">
-        <input type="number" id="expense" placeholder="支出合計">
-        <button onclick="saveData()">データを保存する</button>
+        <h2>目標設定</h2>
+        <input type="number" id="target_amount" placeholder="目標金額">
+        <input type="date" id="target_date">
+        <button class="btn btn-sub" onclick="saveTarget()">目標を更新</button>
     </div>
 
+    <!-- 今月のサマリ & 入力 -->
     <div class="card">
-        <h2>目標達成トラッカー</h2>
-        <div id="status">進捗状況を読み込み中...</div>
-        <div class="progress-bar"><div id="progress" class="progress-fill"></div></div>
+        <h2>収支サマリ: <span id="current_month_label"></span></h2>
+        <div class="summary-box">
+            <div class="summary-item"><div class="summary-label">収入</div><div id="sum_income" class="summary-value">¥0</div></div>
+            <div class="summary-item"><div class="summary-label">支出（固定費込）</div><div id="sum_expense" class="summary-value">¥0</div></div>
+        </div>
+        <hr style="border: 0; border-top: 1px solid #eee; margin: 15px 0;">
+        <input type="number" id="income" placeholder="今月の総収入">
+        <input type="number" id="investment" placeholder="今月の投資額">
+        <input type="number" id="expense" placeholder="今月のその他支出">
+        <button class="btn" onclick="saveMonthly()">収支を保存</button>
+    </div>
+
+    <!-- 固定費セクション -->
+    <div class="card">
+        <h2>固定費 (家賃・サブスク等)</h2>
+        <div id="fixed_costs_list"></div>
+        <div style="display: flex; gap: 5px; margin-top: 10px;">
+            <input type="text" id="fixed_name" placeholder="項目名" style="flex: 2;">
+            <input type="number" id="fixed_price" placeholder="金額" style="flex: 1;">
+        </div>
+        <button class="btn btn-sub" onclick="addFixedCost()">固定費を追加</button>
     </div>
 
     <script type="module">
+        // config.js から設定をインポート
+        import { firebaseConfig } from './config.js';
+        
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
-        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
-
-        // Firebase設定 (Firebaseコンソールから取得した値を以下に貼り付けてください)
-        const firebaseConfig = {
-        apiKey: "AIzaSyBp5SiirSsyKwpaYVl_03bqCkdAtZAwczY",
-        authDomain: "budgeter-43efe.firebaseapp.com",
-        projectId: "budgeter-43efe",
-        storageBucket: "budgeter-43efe.firebasestorage.app",
-        messagingSenderId: "170335209237",
-        appId: "1:170335209237:web:6e0a6db052cc739615cb1c",
-        measurementId: "G-8PDWWHDFY4"
-        };
+        import { getFirestore, doc, setDoc, getDoc, collection, addDoc, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-        const userId = "sample_user_001"; // 本来はログイン処理が必要
+        const userId = "scanlink_user";
+        const now = new Date();
+        const currentYM = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
 
-        window.saveData = async () => {
+        document.getElementById('current_month_label').innerText = currentYM;
+
+        // 目標保存
+        window.saveTarget = async () => {
+            const amount = Number(document.getElementById('target_amount').value);
+            const date = document.getElementById('target_date').value;
+            await setDoc(doc(db, "users", userId), { target_amount: amount, target_date: date }, { merge: true });
+            alert("目標を保存しました");
+        };
+
+        // 固定費追加
+        window.addFixedCost = async () => {
+            const name = document.getElementById('fixed_name').value;
+            const price = Number(document.getElementById('fixed_price').value);
+            if(!name || !price) return;
+            await addDoc(collection(db, "fixed_costs"), { user_id: userId, name, price });
+            document.getElementById('fixed_name').value = "";
+            document.getElementById('fixed_price').value = "";
+            loadData();
+        };
+
+        // 収支保存
+        window.saveMonthly = async () => {
             const data = {
                 income: Number(document.getElementById('income').value),
                 investment: Number(document.getElementById('investment').value),
                 expense: Number(document.getElementById('expense').value),
                 updated_at: new Date()
             };
-            await setDoc(doc(db, "monthly_records", "2026-05"), { ...data, user_id: userId, year_month: "2026-05" });
-            alert("保存しました！");
+            await setDoc(doc(db, "monthly_records", `${userId}_${currentYM}`), { ...data, user_id: userId, year_month: currentYM });
+            alert("保存しました");
+            loadData();
         };
+
+        // データ読み込み
+        async function loadData() {
+            const userSnap = await getDoc(doc(db, "users", userId));
+            if (userSnap.exists()) {
+                document.getElementById('target_amount').value = userSnap.data().target_amount;
+                document.getElementById('target_date').value = userSnap.data().target_date;
+            }
+
+            const q = query(collection(db, "fixed_costs"), where("user_id", "==", userId));
+            const querySnapshot = await getDocs(q);
+            let fixedTotal = 0;
+            const listDiv = document.getElementById('fixed_costs_list');
+            listDiv.innerHTML = "";
+            querySnapshot.forEach((doc) => {
+                const item = doc.data();
+                fixedTotal += item.price;
+                listDiv.innerHTML += `<div class="fixed-cost-item"><span>${item.name}</span><span>¥${item.price.toLocaleString()}</span></div>`;
+            });
+
+            const monthSnap = await getDoc(doc(db, "monthly_records", `${userId}_${currentYM}`));
+            if (monthSnap.exists()) {
+                const mData = monthSnap.data();
+                document.getElementById('sum_income').innerText = `¥${mData.income.toLocaleString()}`;
+                document.getElementById('sum_expense').innerText = `¥${(mData.expense + fixedTotal).toLocaleString()}`;
+            }
+        }
+        loadData();
     </script>
 </body>
 </html>
