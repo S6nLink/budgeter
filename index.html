@@ -4,26 +4,30 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>資産管理アプリ - ScanLink Edition</title>
-    <!-- Chart.js をタグで読み込む（これが一番安定します） -->
+    <!-- Chart.js と Google AI SDK の読み込み -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        :root { --primary: #007bff; --success: #28a745; --bg: #f8f9fa; }
-        body { font-family: sans-serif; background: var(--bg); margin: 0; padding: 15px; padding-bottom: 80px; }
+        :root { --primary: #007bff; --success: #28a745; --danger: #dc3545; --warning: #ffc107; --bg: #f8f9fa; }
+        body { font-family: sans-serif; background: var(--bg); margin: 0; padding: 15px; padding-bottom: 80px; color: #333; }
         .card { background: white; padding: 15px; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-        h2 { font-size: 1rem; margin-top: 0; color: #555; border-left: 4px solid var(--primary); padding-left: 10px; }
+        h2 { font-size: 1rem; margin-top: 0; color: #555; border-left: 4px solid var(--primary); padding-left: 10px; margin-bottom: 15px; }
         input, select { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
-        .btn { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        .btn { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .btn:active { opacity: 0.8; }
         .btn-sub { background: #6c757d; margin-top: 5px; }
+        .btn-ai { background: #6f42c1; margin-top: 10px; }
         .summary-box { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
         .summary-item { background: #eef2f7; padding: 10px; border-radius: 8px; text-align: center; }
         .summary-label { font-size: 0.75rem; color: #666; }
         .summary-value { font-weight: bold; font-size: 1.1rem; }
-        .chart-container { margin: 20px auto; max-width: 300px; }
+        .chart-container { margin: 20px auto; max-width: 280px; }
         .fixed-cost-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee; font-size: 0.9rem; }
+        #ai_response { margin-top: 15px; padding: 12px; background: #f0ebf8; border-radius: 8px; font-size: 0.9rem; line-height: 1.5; border-left: 4px solid #6f42c1; display: none; }
     </style>
 </head>
 <body>
 
+    <!-- 1. 年月選択 -->
     <div class="card">
         <h2>対象年月の選択</h2>
         <div style="display: flex; gap: 10px;">
@@ -32,25 +36,35 @@
         </div>
     </div>
 
+    <!-- 2. 収支サマリ -->
     <div class="card">
         <h2>収支サマリ: <span id="label_ym"></span></h2>
         <div class="summary-box">
             <div class="summary-item"><div class="summary-label">総収入</div><div id="sum_income" class="summary-value">¥0</div></div>
-            <div class="summary-item"><div class="summary-label">支出計(固定費込)</div><div id="sum_expense" class="summary-value">¥0</div></div>
+            <div class="summary-item"><div class="summary-label">生活費(支出計)</div><div id="sum_expense" class="summary-value">¥0</div></div>
         </div>
         <div class="chart-container">
             <canvas id="summaryChart"></canvas>
         </div>
         <hr style="border: 0; border-top: 1px solid #eee; margin: 15px 0;">
-        <h2>データ入力・編集</h2>
-        <input type="number" id="income" placeholder="総収入">
-        <input type="number" id="investment" placeholder="投資額">
-        <input type="number" id="expense" placeholder="その他支出">
-        <button class="btn" onclick="saveMonthly()">保存する</button>
+        <h2>月次データ入力</h2>
+        <input type="number" id="income" placeholder="この月の総収入">
+        <input type="number" id="investment" placeholder="この月の投資額 (積立・株など)">
+        <input type="number" id="expense" placeholder="その他支出 (食費・娯楽など)">
+        <button class="btn" onclick="saveMonthly()">データを保存・更新</button>
     </div>
 
+    <!-- 3. AI予測 -->
     <div class="card">
-        <h2>共通固定費</h2>
+        <h2>AI 目標達成シミュレーション</h2>
+        <p style="font-size: 0.75rem; color: #666;">現在の投資額と余剰金に基づき、目標達成を予測します。</p>
+        <button class="btn btn-ai" onclick="predictGoal()">AI予測を実行</button>
+        <div id="ai_response"></div>
+    </div>
+
+    <!-- 4. 固定費管理 -->
+    <div class="card">
+        <h2>共通固定費 (家賃・サブスク等)</h2>
         <div id="fixed_costs_list"></div>
         <div style="display: flex; gap: 5px; margin-top: 10px;">
             <input type="text" id="fixed_name" placeholder="項目名" style="flex: 2;">
@@ -59,27 +73,32 @@
         <button class="btn btn-sub" onclick="addFixedCost()">固定費を追加</button>
     </div>
 
+    <!-- 5. 目標設定 -->
     <div class="card">
-        <h2>目標設定</h2>
-        <input type="number" id="target_amount" placeholder="目標金額">
+        <h2>全体目標設定</h2>
+        <input type="number" id="target_amount" placeholder="目標金額 (例: 5000000)">
         <input type="date" id="target_date">
-        <button class="btn btn-sub" onclick="saveTarget()">更新</button>
+        <button class="btn btn-sub" onclick="saveTarget()">目標を更新</button>
     </div>
 
     <script type="module">
         import { firebaseConfig } from './config.js';
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
         import { getFirestore, doc, setDoc, getDoc, collection, addDoc, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+        import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
 
+        // 設定
+        const GEMINI_API_KEY = "AIzaSyCm_GZaRWKKleYOeUrzIyXh6V_7Vl-U51w";
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const userId = "scanlink_user";
+        const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
 
-        // 年月プルダウン生成
+        // UI初期化 (年月プルダウン)
         const yearSelect = document.getElementById('select_year');
         const monthSelect = document.getElementById('select_month');
         const now = new Date();
-        for(let y = 2016; y <= now.getFullYear(); y++) {
+        for(let y = 2020; y <= now.getFullYear() + 5; y++) {
             let opt = document.createElement('option');
             opt.value = y; opt.innerText = y + "年";
             if(y === now.getFullYear()) opt.selected = true;
@@ -94,31 +113,37 @@
 
         const getSelectedYM = () => `${yearSelect.value}-${monthSelect.value}`;
 
-        // グラフ制御
+        // グラフ描画
         let summaryChart = null;
         const updateSummaryChart = (income, investment, expense, fixed) => {
             const ctx = document.getElementById('summaryChart').getContext('2d');
+            const lifeCost = expense + fixed;
+            const surplus = income - (lifeCost + investment);
+
             if (summaryChart) summaryChart.destroy();
             summaryChart = new Chart(ctx, {
                 type: 'doughnut',
                 data: {
-                    labels: ['投資', '支出', '固定費'],
+                    labels: ['投資（別枠）', '生活費（支出）', '余剰金（貯蓄）'],
                     datasets: [{
-                        data: [investment, expense, fixed],
-                        backgroundColor: ['#28a745', '#dc3545', '#ffc107'],
+                        data: [investment, lifeCost, Math.max(0, surplus)],
+                        backgroundColor: ['#28a745', '#dc3545', '#007bff'],
+                        borderWidth: 2
                     }]
                 },
-                options: { plugins: { legend: { position: 'bottom' } } }
+                options: {
+                    plugins: { legend: { position: 'bottom' } }
+                }
             });
         };
 
-        // Firebase保存関数群
+        // --- Firebase 操作 ---
+
         window.saveTarget = async () => {
-            await setDoc(doc(db, "users", userId), { 
-                target_amount: Number(document.getElementById('target_amount').value), 
-                target_date: document.getElementById('target_date').value 
-            }, { merge: true });
-            alert("目標を保存");
+            const amount = Number(document.getElementById('target_amount').value);
+            const date = document.getElementById('target_date').value;
+            await setDoc(doc(db, "users", userId), { target_amount: amount, target_date: date }, { merge: true });
+            alert("目標を保存しました");
         };
 
         window.addFixedCost = async () => {
@@ -131,36 +156,43 @@
 
         window.saveMonthly = async () => {
             const ym = getSelectedYM();
-            await setDoc(doc(db, "monthly_records", `${userId}_${ym}`), {
+            const data = {
                 income: Number(document.getElementById('income').value),
                 investment: Number(document.getElementById('investment').value),
                 expense: Number(document.getElementById('expense').value),
                 user_id: userId,
                 year_month: ym,
                 updated_at: new Date()
-            });
-            alert(ym + " 保存完了");
+            };
+            await setDoc(doc(db, "monthly_records", `${userId}_${ym}`), data);
+            alert(ym + " のデータを保存しました");
             loadData();
         };
 
-        // データ読み込み
         window.loadData = async () => {
             const ym = getSelectedYM();
             document.getElementById('label_ym').innerText = ym;
 
-            // 固定費取得
+            // 目標の読み込み
+            const userSnap = await getDoc(doc(db, "users", userId));
+            if (userSnap.exists()) {
+                document.getElementById('target_amount').value = userSnap.data().target_amount || "";
+                document.getElementById('target_date').value = userSnap.data().target_date || "";
+            }
+
+            // 固定費の読み込み
             const q = query(collection(db, "fixed_costs"), where("user_id", "==", userId));
-            const fsSnap = await getDocs(q);
+            const querySnapshot = await getDocs(q);
             let fixedTotal = 0;
             const listDiv = document.getElementById('fixed_costs_list');
             listDiv.innerHTML = "";
-            fsSnap.forEach((doc) => {
+            querySnapshot.forEach((doc) => {
                 const item = doc.data();
                 fixedTotal += item.price;
                 listDiv.innerHTML += `<div class="fixed-cost-item"><span>${item.name}</span><span>¥${item.price.toLocaleString()}</span></div>`;
             });
 
-            // 月次データ取得
+            // 月次データの読み込み
             const monthSnap = await getDoc(doc(db, "monthly_records", `${userId}_${ym}`));
             if (monthSnap.exists()) {
                 const d = monthSnap.data();
@@ -173,10 +205,57 @@
             } else {
                 document.getElementById('sum_income').innerText = "¥0";
                 document.getElementById('sum_expense').innerText = `¥${fixedTotal.toLocaleString()}`;
+                document.getElementById('income').value = "";
+                document.getElementById('investment').value = "";
+                document.getElementById('expense').value = "";
                 updateSummaryChart(0, 0, 0, fixedTotal);
             }
         };
 
+        // --- AI 予測 ---
+
+        window.predictGoal = async () => {
+            const target = Number(document.getElementById('target_amount').value);
+            const income = Number(document.getElementById('income').value);
+            const invest = Number(document.getElementById('investment').value);
+            const expense = Number(document.getElementById('expense').value);
+            const responseDiv = document.getElementById('ai_response');
+
+            if (!target || !income) {
+                alert("目標金額と今月の収支を入力してください。");
+                return;
+            }
+
+            responseDiv.style.display = "block";
+            responseDiv.innerText = "AIが思考中... (ScanLinkの財務状況を分析中)";
+
+            try {
+                const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+                const prompt = `
+                    あなたはScanLinkという著者・クリエイターの専属財務コンサルタントです。
+                    以下のデータに基づき、論理的かつ励みになるアドバイスをください。
+                    
+                    - 目標資産額: ${target}円
+                    - 今月の総収入: ${income}円
+                    - 投資額（別枠）: ${invest}円
+                    - 生活費計（固定費込）: ${expense}円
+                    - 余剰金（今月の貯金分）: ${income - invest - expense}円
+                    
+                    【依頼内容】
+                    1. 「投資額 + 余剰金」を毎月の蓄財ペースとした場合、目標まであと何ヶ月かかるか計算してください。
+                    2. クリエイターであるScanLinkさんに向けて、モチベーションが上がるようなメッセージを添えてください。
+                    3. 150文字程度で簡潔に。
+                `;
+
+                const result = await model.generateContent(prompt);
+                responseDiv.innerHTML = "<strong>AIアドバイス:</strong><br>" + result.response.text();
+            } catch (err) {
+                console.error(err);
+                responseDiv.innerText = "AI予測でエラーが発生しました。APIキーまたはネットワークを確認してください。";
+            }
+        };
+
+        // 初回読み込み
         loadData();
     </script>
 </body>
