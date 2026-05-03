@@ -12,17 +12,16 @@
         h2 { font-size: 1rem; margin-top: 0; color: #555; border-left: 4px solid var(--primary); padding-left: 10px; margin-bottom: 15px; }
         input, select { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
         .btn { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        .btn-sub { background: #6c757d; margin-top: 5px; }
         .btn-ai { background: #6f42c1; margin-top: 10px; }
         
-        /* グラフを並べるレイアウト */
         .charts-grid { display: grid; grid-template-columns: 1fr; gap: 15px; }
         @media (min-width: 600px) { .charts-grid { grid-template-columns: 1fr 1fr; } }
-        .chart-container { position: relative; height: 250px; width: 100%; }
+        .chart-container { position: relative; height: 220px; width: 100%; }
 
-        .summary-item { background: #eef2f7; padding: 10px; border-radius: 8px; text-align: center; margin-bottom: 10px; }
-        .summary-label { font-size: 0.75rem; color: #666; }
-        .summary-value { font-weight: bold; font-size: 1.2rem; }
-        #ai_response { margin-top: 15px; padding: 12px; background: #f0ebf8; border-radius: 8px; font-size: 0.9rem; display: none; }
+        .fixed-cost-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee; font-size: 0.9rem; }
+        #ai_response { margin-top: 15px; padding: 12px; background: #f0ebf8; border-radius: 8px; font-size: 0.9rem; border-left: 4px solid #6f42c1; display: none; }
+        .surplus-box { background: #eef7f0; padding: 10px; border-radius: 8px; text-align: center; border: 2px solid var(--success); margin-top: 10px; }
     </style>
 </head>
 <body>
@@ -35,49 +34,60 @@
         </div>
     </div>
 
+    <!-- 視覚化セクション -->
     <div class="card">
-        <h2>分析サマリ</h2>
+        <h2>状況分析</h2>
         <div class="charts-grid">
             <div>
-                <p style="text-align: center; font-size: 0.8rem; font-weight: bold;">月間収支フロー</p>
+                <p style="text-align: center; font-size: 0.8rem; color: #666;">月間収支 (収入 vs 支出)</p>
                 <div class="chart-container"><canvas id="flowChart"></canvas></div>
             </div>
             <div>
-                <p style="text-align: center; font-size: 0.8rem; font-weight: bold;">投資資産状況</p>
+                <p style="text-align: center; font-size: 0.8rem; color: #666;">総投資資産の積み上げ</p>
                 <div class="chart-container"><canvas id="investChart"></canvas></div>
             </div>
         </div>
-        <div class="summary-item" style="margin-top:15px; border: 2px solid var(--success);">
-            <div class="summary-label">今月の投資可能額 (余剰金)</div>
-            <div id="sum_surplus" class="summary-value" style="color: var(--success);">¥0</div>
+        <div class="surplus-box">
+            <div style="font-size: 0.75rem; color: #2e7d32;">今月の追加投資可能額（余剰金）</div>
+            <div id="sum_surplus" style="font-weight: bold; font-size: 1.3rem; color: var(--success);">¥0</div>
         </div>
     </div>
 
+    <!-- 入力セクション -->
     <div class="card">
-        <h2>データ入力</h2>
+        <h2>収支データの入力</h2>
         <input type="number" id="income" placeholder="総収入 (例: 300000)">
-        <input type="number" id="expense_other" placeholder="今月の支出 (例: 250000)">
-        <input type="number" id="current_invest_total" placeholder="現在の総投資額 (例: 1000000)">
+        <input type="number" id="expense_variable" placeholder="変動費/その他支出 (例: 50000)">
+        <input type="number" id="current_invest_total" placeholder="現在の総投資資産額 (例: 1000000)">
         <button class="btn" onclick="saveMonthly()">データを保存</button>
-        <button class="btn btn-ai" onclick="predictGoal()">AIに投資判断を仰ぐ</button>
+        <button class="btn btn-ai" onclick="predictGoal()">AI 投資シミュレーション</button>
         <div id="ai_response"></div>
+    </div>
+
+    <!-- 固定費セクション -->
+    <div class="card">
+        <h2>固定費の管理</h2>
+        <div id="fixed_costs_list"></div>
+        <div style="display: flex; gap: 5px; margin-top: 10px;">
+            <input type="text" id="fixed_name" placeholder="項目名" style="flex: 2;">
+            <input type="number" id="fixed_price" placeholder="金額" style="flex: 1;">
+        </div>
+        <button class="btn btn-sub" onclick="addFixedCost()">固定費を追加</button>
     </div>
 
     <script type="module">
         import { firebaseConfig } from './config.js';
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
-        import { getFirestore, doc, setDoc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, getDoc, collection, addDoc, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
         import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
 
-        // 設定
         const API_KEY = "AIzaSyCm_GZaRWKKleYOeUrzIyXh6V_7Vl-U51w";
-        
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const genAI = new GoogleGenerativeAI(API_KEY);
         const userId = "scanlink_user";
 
-        // プルダウン生成
+        // 日付初期化
         const yearSelect = document.getElementById('select_year');
         const monthSelect = document.getElementById('select_month');
         const now = new Date();
@@ -94,47 +104,59 @@
 
         let flowChart, investChart;
 
-        const updateVisuals = (income, expense, investTotal) => {
-            const surplus = income - expense;
+        // 視覚化の更新
+        const updateVisuals = (income, variableExpense, fixedTotal, investTotal) => {
+            const totalExpense = variableExpense + fixedTotal;
+            const surplus = income - totalExpense;
             document.getElementById('sum_surplus').innerText = `¥${surplus.toLocaleString()}`;
 
-            // 左：月間収支フロー (円グラフ)
+            // 収支フロー（円グラフ）
             const ctxFlow = document.getElementById('flowChart').getContext('2d');
             if(flowChart) flowChart.destroy();
             flowChart = new Chart(ctxFlow, {
                 type: 'pie',
                 data: {
-                    labels: ['支出', '余剰金'],
+                    labels: ['固定費', '変動費', '余剰金'],
                     datasets: [{
-                        data: [expense, Math.max(0, surplus)],
-                        backgroundColor: [ '#ff6384', '#36a2eb']
+                        data: [fixedTotal, variableExpense, Math.max(0, surplus)],
+                        backgroundColor: ['#ff6384', '#ff9f40', '#36a2eb']
                     }]
                 }
             });
 
-            // 右：投資状況 (積上棒グラフ)
+            // 投資資産（積み上げ棒グラフ）
             const ctxInvest = document.getElementById('investChart').getContext('2d');
             if(investChart) investChart.destroy();
             investChart = new Chart(ctxInvest, {
                 type: 'bar',
                 data: {
-                    labels: ['投資総額'],
+                    labels: ['資産'],
                     datasets: [
                         { label: '既存資産', data: [investTotal], backgroundColor: '#4bc0c0' },
-                        { label: '今月の追加可能分', data: [Math.max(0, surplus)], backgroundColor: '#ffce56' }
+                        { label: '追加可能額', data: [Math.max(0, surplus)], backgroundColor: '#ffce56' }
                     ]
                 },
                 options: {
-                    scales: { x: { stacked: true }, y: { stacked: true, beginAtZero: true } }
+                    indexAxis: 'y',
+                    scales: { x: { stacked: true }, y: { stacked: true } },
+                    plugins: { legend: { display: false } }
                 }
             });
+        };
+
+        window.addFixedCost = async () => {
+            const name = document.getElementById('fixed_name').value;
+            const price = Number(document.getElementById('fixed_price').value);
+            if(!name || !price) return;
+            await addDoc(collection(db, "fixed_costs"), { user_id: userId, name, price });
+            loadData();
         };
 
         window.saveMonthly = async () => {
             const ym = `${yearSelect.value}-${monthSelect.value}`;
             await setDoc(doc(db, "monthly_records", `${userId}_${ym}`), {
                 income: Number(document.getElementById('income').value),
-                expense: Number(document.getElementById('expense_other').value),
+                expense_variable: Number(document.getElementById('expense_variable').value),
                 invest_total: Number(document.getElementById('current_invest_total').value),
                 user_id: userId,
                 year_month: ym
@@ -145,35 +167,55 @@
 
         window.loadData = async () => {
             const ym = `${yearSelect.value}-${monthSelect.value}`;
-            const snap = await getDoc(doc(db, "monthly_records", `${userId}_${ym}`));
-            if(snap.exists()) {
-                const d = snap.data();
+            
+            // 固定費取得
+            const q = query(collection(db, "fixed_costs"), where("user_id", "==", userId));
+            const fixedSnap = await getDocs(q);
+            let fixedTotal = 0;
+            const listDiv = document.getElementById('fixed_costs_list');
+            listDiv.innerHTML = "";
+            fixedSnap.forEach(doc => {
+                const item = doc.data();
+                fixedTotal += item.price;
+                listDiv.innerHTML += `<div class="fixed-cost-item"><span>${item.name}</span><span>¥${item.price.toLocaleString()}</span></div>`;
+            });
+
+            // 月次データ取得
+            const monthSnap = await getDoc(doc(db, "monthly_records", `${userId}_${ym}`));
+            if(monthSnap.exists()) {
+                const d = monthSnap.data();
                 document.getElementById('income').value = d.income;
-                document.getElementById('expense_other').value = d.expense;
+                document.getElementById('expense_variable').value = d.expense_variable;
                 document.getElementById('current_invest_total').value = d.invest_total;
-                updateVisuals(d.income, d.expense, d.invest_total);
+                updateVisuals(d.income, d.expense_variable, fixedTotal, d.invest_total);
+            } else {
+                updateVisuals(0, 0, fixedTotal, 0);
             }
         };
 
         window.predictGoal = async () => {
             const income = Number(document.getElementById('income').value);
-            const expense = Number(document.getElementById('expense_other').value);
-            const invest = Number(document.getElementById('current_invest_total').value);
-            const surplus = income - expense;
-
+            const variable = Number(document.getElementById('expense_variable').value);
+            const investTotal = Number(document.getElementById('current_invest_total').value);
             const resDiv = document.getElementById('ai_response');
+            
             resDiv.style.display = "block";
-            resDiv.innerText = "思考中...";
+            resDiv.innerText = "分析中...";
 
             const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-            const prompt = `あなたはScanLinkの財務ガイドです。
-            現状：収入${income}円、支出${expense}円、現在の投資総額${invest}円。
-            今月は${surplus}円が浮きました。
-            この浮いた分をどう投資に回すべきか、あるいは万が一の備えにするべきか、
-            クリエイティブな視点で100文字以内でアドバイスして。`;
+            const prompt = `
+                あなたは著者・クリエイターであるScanLinkさんの専属アドバイザーです。
+                今月の収入は${income}円。変動費は${variable}円。現在の投資総額は${investTotal}円です。
+                収支計算の結果、浮いた「余剰金」を今の資産100万円に積み増すべきか、
+                それとも将来の創作活動のための自己投資に回すべきか、100文字程度で魅力的な提案をしてください。
+            `;
 
-            const result = await model.generateContent(prompt);
-            resDiv.innerHTML = "<strong>AI診断:</strong><br>" + result.response.text();
+            try {
+                const result = await model.generateContent(prompt);
+                resDiv.innerHTML = "<strong>AI診断:</strong><br>" + result.response.text();
+            } catch (e) {
+                resDiv.innerText = "予測エラー。APIキーを確認してください。";
+            }
         };
 
         loadData();
