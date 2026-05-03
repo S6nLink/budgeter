@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>資産管理アプリ - ScanLink</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; background: #f4f4f9; color: #333; }
+        .card { background: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        h2 { margin-top: 0; font-size: 1.2em; }
+        input { width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; background: #007bff; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        .progress-bar { height: 20px; background: #eee; border-radius: 10px; overflow: hidden; }
+        .progress-fill { height: 100%; background: #28a745; width: 0%; transition: width 0.5s; }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h2>今月の収支入力</h2>
+        <input type="number" id="income" placeholder="収入合計">
+        <input type="number" id="investment" placeholder="投資・運用額">
+        <input type="number" id="expense" placeholder="支出合計">
+        <button onclick="saveData()">データを保存する</button>
+    </div>
+
+    <div class="card">
+        <h2>目標達成トラッカー</h2>
+        <div id="status">進捗状況を読み込み中...</div>
+        <div class="progress-bar"><div id="progress" class="progress-fill"></div></div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
+        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+
+        // Firebase設定 (Firebaseコンソールから取得した値を以下に貼り付けてください)
+        const firebaseConfig = {
+        apiKey: "AIzaSyBp5SiirSsyKwpaYVl_03bqCkdAtZAwczY",
+        authDomain: "budgeter-43efe.firebaseapp.com",
+        projectId: "budgeter-43efe",
+        storageBucket: "budgeter-43efe.firebasestorage.app",
+        messagingSenderId: "170335209237",
+        appId: "1:170335209237:web:6e0a6db052cc739615cb1c",
+        measurementId: "G-8PDWWHDFY4"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const userId = "sample_user_001"; // 本来はログイン処理が必要
+
+        window.saveData = async () => {
+            const data = {
+                income: Number(document.getElementById('income').value),
+                investment: Number(document.getElementById('investment').value),
+                expense: Number(document.getElementById('expense').value),
+                updated_at: new Date()
+            };
+            await setDoc(doc(db, "monthly_records", "2026-05"), { ...data, user_id: userId, year_month: "2026-05" });
+            alert("保存しました！");
+        };
+    </script>
+</body>
+</html>
