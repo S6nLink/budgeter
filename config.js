@@ -7,3 +7,5 @@ export const firebaseConfig = {
     appId: "1:170335209237:web:6e0a6db052cc739615cb1c",
     measurementId: "G-8PDWWHDFY4"
     };
+
+export const GEMINI_API_KEY = "AIzaSyCm_GZaRWKKleYOeUrzIyXh6V_7Vl-U51w";
