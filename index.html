@@ -4,258 +4,178 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>資産管理アプリ - ScanLink Edition</title>
-    <!-- Chart.js と Google AI SDK の読み込み -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        :root { --primary: #007bff; --success: #28a745; --danger: #dc3545; --warning: #ffc107; --bg: #f8f9fa; }
+        :root { --primary: #007bff; --success: #28a745; --danger: #dc3545; --bg: #f8f9fa; }
         body { font-family: sans-serif; background: var(--bg); margin: 0; padding: 15px; padding-bottom: 80px; color: #333; }
         .card { background: white; padding: 15px; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         h2 { font-size: 1rem; margin-top: 0; color: #555; border-left: 4px solid var(--primary); padding-left: 10px; margin-bottom: 15px; }
         input, select { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
-        .btn { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s; }
-        .btn:active { opacity: 0.8; }
-        .btn-sub { background: #6c757d; margin-top: 5px; }
+        .btn { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
         .btn-ai { background: #6f42c1; margin-top: 10px; }
-        .summary-box { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
-        .summary-item { background: #eef2f7; padding: 10px; border-radius: 8px; text-align: center; }
+        
+        /* グラフを並べるレイアウト */
+        .charts-grid { display: grid; grid-template-columns: 1fr; gap: 15px; }
+        @media (min-width: 600px) { .charts-grid { grid-template-columns: 1fr 1fr; } }
+        .chart-container { position: relative; height: 250px; width: 100%; }
+
+        .summary-item { background: #eef2f7; padding: 10px; border-radius: 8px; text-align: center; margin-bottom: 10px; }
         .summary-label { font-size: 0.75rem; color: #666; }
-        .summary-value { font-weight: bold; font-size: 1.1rem; }
-        .chart-container { margin: 20px auto; max-width: 280px; }
-        .fixed-cost-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee; font-size: 0.9rem; }
-        #ai_response { margin-top: 15px; padding: 12px; background: #f0ebf8; border-radius: 8px; font-size: 0.9rem; line-height: 1.5; border-left: 4px solid #6f42c1; display: none; }
+        .summary-value { font-weight: bold; font-size: 1.2rem; }
+        #ai_response { margin-top: 15px; padding: 12px; background: #f0ebf8; border-radius: 8px; font-size: 0.9rem; display: none; }
     </style>
 </head>
 <body>
 
-    <!-- 1. 年月選択 -->
     <div class="card">
-        <h2>対象年月の選択</h2>
+        <h2>対象年月</h2>
         <div style="display: flex; gap: 10px;">
             <select id="select_year" onchange="loadData()"></select>
             <select id="select_month" onchange="loadData()"></select>
         </div>
     </div>
 
-    <!-- 2. 収支サマリ -->
     <div class="card">
-        <h2>収支サマリ: <span id="label_ym"></span></h2>
-        <div class="summary-box">
-            <div class="summary-item"><div class="summary-label">総収入</div><div id="sum_income" class="summary-value">¥0</div></div>
-            <div class="summary-item"><div class="summary-label">生活費(支出計)</div><div id="sum_expense" class="summary-value">¥0</div></div>
+        <h2>分析サマリ</h2>
+        <div class="charts-grid">
+            <div>
+                <p style="text-align: center; font-size: 0.8rem; font-weight: bold;">月間収支フロー</p>
+                <div class="chart-container"><canvas id="flowChart"></canvas></div>
+            </div>
+            <div>
+                <p style="text-align: center; font-size: 0.8rem; font-weight: bold;">投資資産状況</p>
+                <div class="chart-container"><canvas id="investChart"></canvas></div>
+            </div>
         </div>
-        <div class="chart-container">
-            <canvas id="summaryChart"></canvas>
+        <div class="summary-item" style="margin-top:15px; border: 2px solid var(--success);">
+            <div class="summary-label">今月の投資可能額 (余剰金)</div>
+            <div id="sum_surplus" class="summary-value" style="color: var(--success);">¥0</div>
         </div>
-        <hr style="border: 0; border-top: 1px solid #eee; margin: 15px 0;">
-        <h2>月次データ入力</h2>
-        <input type="number" id="income" placeholder="この月の総収入">
-        <input type="number" id="investment" placeholder="この月の投資額 (積立・株など)">
-        <input type="number" id="expense" placeholder="その他支出 (食費・娯楽など)">
-        <button class="btn" onclick="saveMonthly()">データを保存・更新</button>
     </div>
 
-    <!-- 3. AI予測 -->
     <div class="card">
-        <h2>AI 目標達成シミュレーション</h2>
-        <p style="font-size: 0.75rem; color: #666;">現在の投資額と余剰金に基づき、目標達成を予測します。</p>
-        <button class="btn btn-ai" onclick="predictGoal()">AI予測を実行</button>
+        <h2>データ入力</h2>
+        <input type="number" id="income" placeholder="総収入 (例: 300000)">
+        <input type="number" id="expense_other" placeholder="今月の支出 (例: 250000)">
+        <input type="number" id="current_invest_total" placeholder="現在の総投資額 (例: 1000000)">
+        <button class="btn" onclick="saveMonthly()">データを保存</button>
+        <button class="btn btn-ai" onclick="predictGoal()">AIに投資判断を仰ぐ</button>
         <div id="ai_response"></div>
-    </div>
-
-    <!-- 4. 固定費管理 -->
-    <div class="card">
-        <h2>共通固定費 (家賃・サブスク等)</h2>
-        <div id="fixed_costs_list"></div>
-        <div style="display: flex; gap: 5px; margin-top: 10px;">
-            <input type="text" id="fixed_name" placeholder="項目名" style="flex: 2;">
-            <input type="number" id="fixed_price" placeholder="金額" style="flex: 1;">
-        </div>
-        <button class="btn btn-sub" onclick="addFixedCost()">固定費を追加</button>
-    </div>
-
-    <!-- 5. 目標設定 -->
-    <div class="card">
-        <h2>全体目標設定</h2>
-        <input type="number" id="target_amount" placeholder="目標金額 (例: 5000000)">
-        <input type="date" id="target_date">
-        <button class="btn btn-sub" onclick="saveTarget()">目標を更新</button>
     </div>
 
     <script type="module">
         import { firebaseConfig } from './config.js';
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
-        import { getFirestore, doc, setDoc, getDoc, collection, addDoc, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
         import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
 
         // 設定
-        const GEMINI_API_KEY = "AIzaSyCm_GZaRWKKleYOeUrzIyXh6V_7Vl-U51w";
+        const API_KEY = "AIzaSyCm_GZaRWKKleYOeUrzIyXh6V_7Vl-U51w";
+        
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+        const genAI = new GoogleGenerativeAI(API_KEY);
         const userId = "scanlink_user";
-        const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
 
-        // UI初期化 (年月プルダウン)
+        // プルダウン生成
         const yearSelect = document.getElementById('select_year');
         const monthSelect = document.getElementById('select_month');
         const now = new Date();
-        for(let y = 2020; y <= now.getFullYear() + 5; y++) {
-            let opt = document.createElement('option');
-            opt.value = y; opt.innerText = y + "年";
+        for(let y = 2024; y <= now.getFullYear() + 1; y++) {
+            let opt = document.createElement('option'); opt.value = y; opt.innerText = y + "年";
             if(y === now.getFullYear()) opt.selected = true;
             yearSelect.appendChild(opt);
         }
         for(let m = 1; m <= 12; m++) {
-            let opt = document.createElement('option');
-            opt.value = String(m).padStart(2, '0'); opt.innerText = m + "月";
+            let opt = document.createElement('option'); opt.value = String(m).padStart(2, '0'); opt.innerText = m + "月";
             if(m === now.getMonth() + 1) opt.selected = true;
             monthSelect.appendChild(opt);
         }
 
-        const getSelectedYM = () => `${yearSelect.value}-${monthSelect.value}`;
+        let flowChart, investChart;
 
-        // グラフ描画
-        let summaryChart = null;
-        const updateSummaryChart = (income, investment, expense, fixed) => {
-            const ctx = document.getElementById('summaryChart').getContext('2d');
-            const lifeCost = expense + fixed;
-            const surplus = income - (lifeCost + investment);
+        const updateVisuals = (income, expense, investTotal) => {
+            const surplus = income - expense;
+            document.getElementById('sum_surplus').innerText = `¥${surplus.toLocaleString()}`;
 
-            if (summaryChart) summaryChart.destroy();
-            summaryChart = new Chart(ctx, {
-                type: 'doughnut',
+            // 左：月間収支フロー (円グラフ)
+            const ctxFlow = document.getElementById('flowChart').getContext('2d');
+            if(flowChart) flowChart.destroy();
+            flowChart = new Chart(ctxFlow, {
+                type: 'pie',
                 data: {
-                    labels: ['投資（別枠）', '生活費（支出）', '余剰金（貯蓄）'],
+                    labels: ['支出', '余剰金'],
                     datasets: [{
-                        data: [investment, lifeCost, Math.max(0, surplus)],
-                        backgroundColor: ['#28a745', '#dc3545', '#007bff'],
-                        borderWidth: 2
+                        data: [expense, Math.max(0, surplus)],
+                        backgroundColor: [ '#ff6384', '#36a2eb']
                     }]
+                }
+            });
+
+            // 右：投資状況 (積上棒グラフ)
+            const ctxInvest = document.getElementById('investChart').getContext('2d');
+            if(investChart) investChart.destroy();
+            investChart = new Chart(ctxInvest, {
+                type: 'bar',
+                data: {
+                    labels: ['投資総額'],
+                    datasets: [
+                        { label: '既存資産', data: [investTotal], backgroundColor: '#4bc0c0' },
+                        { label: '今月の追加可能分', data: [Math.max(0, surplus)], backgroundColor: '#ffce56' }
+                    ]
                 },
                 options: {
-                    plugins: { legend: { position: 'bottom' } }
+                    scales: { x: { stacked: true }, y: { stacked: true, beginAtZero: true } }
                 }
             });
         };
 
-        // --- Firebase 操作 ---
-
-        window.saveTarget = async () => {
-            const amount = Number(document.getElementById('target_amount').value);
-            const date = document.getElementById('target_date').value;
-            await setDoc(doc(db, "users", userId), { target_amount: amount, target_date: date }, { merge: true });
-            alert("目標を保存しました");
-        };
-
-        window.addFixedCost = async () => {
-            const name = document.getElementById('fixed_name').value;
-            const price = Number(document.getElementById('fixed_price').value);
-            if(!name || !price) return;
-            await addDoc(collection(db, "fixed_costs"), { user_id: userId, name, price });
-            loadData();
-        };
-
         window.saveMonthly = async () => {
-            const ym = getSelectedYM();
-            const data = {
+            const ym = `${yearSelect.value}-${monthSelect.value}`;
+            await setDoc(doc(db, "monthly_records", `${userId}_${ym}`), {
                 income: Number(document.getElementById('income').value),
-                investment: Number(document.getElementById('investment').value),
-                expense: Number(document.getElementById('expense').value),
+                expense: Number(document.getElementById('expense_other').value),
+                invest_total: Number(document.getElementById('current_invest_total').value),
                 user_id: userId,
-                year_month: ym,
-                updated_at: new Date()
-            };
-            await setDoc(doc(db, "monthly_records", `${userId}_${ym}`), data);
-            alert(ym + " のデータを保存しました");
+                year_month: ym
+            });
+            alert("保存しました");
             loadData();
         };
 
         window.loadData = async () => {
-            const ym = getSelectedYM();
-            document.getElementById('label_ym').innerText = ym;
-
-            // 目標の読み込み
-            const userSnap = await getDoc(doc(db, "users", userId));
-            if (userSnap.exists()) {
-                document.getElementById('target_amount').value = userSnap.data().target_amount || "";
-                document.getElementById('target_date').value = userSnap.data().target_date || "";
-            }
-
-            // 固定費の読み込み
-            const q = query(collection(db, "fixed_costs"), where("user_id", "==", userId));
-            const querySnapshot = await getDocs(q);
-            let fixedTotal = 0;
-            const listDiv = document.getElementById('fixed_costs_list');
-            listDiv.innerHTML = "";
-            querySnapshot.forEach((doc) => {
-                const item = doc.data();
-                fixedTotal += item.price;
-                listDiv.innerHTML += `<div class="fixed-cost-item"><span>${item.name}</span><span>¥${item.price.toLocaleString()}</span></div>`;
-            });
-
-            // 月次データの読み込み
-            const monthSnap = await getDoc(doc(db, "monthly_records", `${userId}_${ym}`));
-            if (monthSnap.exists()) {
-                const d = monthSnap.data();
-                document.getElementById('sum_income').innerText = `¥${d.income.toLocaleString()}`;
-                document.getElementById('sum_expense').innerText = `¥${(d.expense + fixedTotal).toLocaleString()}`;
+            const ym = `${yearSelect.value}-${monthSelect.value}`;
+            const snap = await getDoc(doc(db, "monthly_records", `${userId}_${ym}`));
+            if(snap.exists()) {
+                const d = snap.data();
                 document.getElementById('income').value = d.income;
-                document.getElementById('investment').value = d.investment;
-                document.getElementById('expense').value = d.expense;
-                updateSummaryChart(d.income, d.investment, d.expense, fixedTotal);
-            } else {
-                document.getElementById('sum_income').innerText = "¥0";
-                document.getElementById('sum_expense').innerText = `¥${fixedTotal.toLocaleString()}`;
-                document.getElementById('income').value = "";
-                document.getElementById('investment').value = "";
-                document.getElementById('expense').value = "";
-                updateSummaryChart(0, 0, 0, fixedTotal);
+                document.getElementById('expense_other').value = d.expense;
+                document.getElementById('current_invest_total').value = d.invest_total;
+                updateVisuals(d.income, d.expense, d.invest_total);
             }
         };
-
-        // --- AI 予測 ---
 
         window.predictGoal = async () => {
-            const target = Number(document.getElementById('target_amount').value);
             const income = Number(document.getElementById('income').value);
-            const invest = Number(document.getElementById('investment').value);
-            const expense = Number(document.getElementById('expense').value);
-            const responseDiv = document.getElementById('ai_response');
+            const expense = Number(document.getElementById('expense_other').value);
+            const invest = Number(document.getElementById('current_invest_total').value);
+            const surplus = income - expense;
 
-            if (!target || !income) {
-                alert("目標金額と今月の収支を入力してください。");
-                return;
-            }
+            const resDiv = document.getElementById('ai_response');
+            resDiv.style.display = "block";
+            resDiv.innerText = "思考中...";
 
-            responseDiv.style.display = "block";
-            responseDiv.innerText = "AIが思考中... (ScanLinkの財務状況を分析中)";
+            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+            const prompt = `あなたはScanLinkの財務ガイドです。
+            現状：収入${income}円、支出${expense}円、現在の投資総額${invest}円。
+            今月は${surplus}円が浮きました。
+            この浮いた分をどう投資に回すべきか、あるいは万が一の備えにするべきか、
+            クリエイティブな視点で100文字以内でアドバイスして。`;
 
-            try {
-                const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-                const prompt = `
-                    あなたはScanLinkという著者・クリエイターの専属財務コンサルタントです。
-                    以下のデータに基づき、論理的かつ励みになるアドバイスをください。
-                    
-                    - 目標資産額: ${target}円
-                    - 今月の総収入: ${income}円
-                    - 投資額（別枠）: ${invest}円
-                    - 生活費計（固定費込）: ${expense}円
-                    - 余剰金（今月の貯金分）: ${income - invest - expense}円
-                    
-                    【依頼内容】
-                    1. 「投資額 + 余剰金」を毎月の蓄財ペースとした場合、目標まであと何ヶ月かかるか計算してください。
-                    2. クリエイターであるScanLinkさんに向けて、モチベーションが上がるようなメッセージを添えてください。
-                    3. 150文字程度で簡潔に。
-                `;
-
-                const result = await model.generateContent(prompt);
-                responseDiv.innerHTML = "<strong>AIアドバイス:</strong><br>" + result.response.text();
-            } catch (err) {
-                console.error(err);
-                responseDiv.innerText = "AI予測でエラーが発生しました。APIキーまたはネットワークを確認してください。";
-            }
+            const result = await model.generateContent(prompt);
+            resDiv.innerHTML = "<strong>AI診断:</strong><br>" + result.response.text();
         };
 
-        // 初回読み込み
         loadData();
     </script>
 </body>
