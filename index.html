@@ -3,241 +3,527 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>資産管理アプリ - ScanLink Edition</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <title>【機密記録】宇宙論的構造体「ア・ロゴス」総合設定アーカイブ</title>
     <style>
-        :root { --primary: #007bff; --success: #28a745; --danger: #dc3545; --bg: #f8f9fa; }
-        body { font-family: sans-serif; background: var(--bg); margin: 0; padding: 15px; padding-bottom: 80px; color: #333; }
-        .card { background: white; padding: 15px; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-        h2 { font-size: 1rem; margin-top: 0; color: #555; border-left: 4px solid var(--primary); padding-left: 10px; margin-bottom: 15px; }
-        input, select { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
-        .btn { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
-        .btn-sub { background: #6c757d; margin-top: 5px; font-size: 0.8rem; padding: 8px; }
-        .btn-ai { background: #6f42c1; margin-top: 10px; }
-        
-        .charts-grid { display: grid; grid-template-columns: 1fr; gap: 15px; }
-        @media (min-width: 600px) { .charts-grid { grid-template-columns: 1fr 1fr; } }
-        .chart-container { position: relative; height: 220px; width: 100%; }
+        :root {
+            --bg-primary: #06080c;
+            --bg-secondary: #0d111a;
+            --bg-card: #131a26;
+            --accent-cyan: #00f0ff;
+            --accent-green: #00ff9d;
+            --accent-red: #ff2a6d;
+            --accent-gold: #ffbe0b;
+            --text-primary: #e2e8f0;
+            --text-secondary: #94a3b8;
+            --border-color: #1e293b;
+            --font-mono: 'Consolas', 'Courier New', 'Yu Gothic', monospace;
+        }
 
-        .list-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee; font-size: 0.9rem; align-items: center; }
-        .delete-btn { background: #ff4d4d; color: white; border: none; border-radius: 4px; padding: 2px 8px; cursor: pointer; font-size: 0.7rem; margin-left: 10px; }
-        #ai_response { margin-top: 15px; padding: 12px; background: #f0ebf8; border-radius: 8px; font-size: 0.9rem; border-left: 4px solid #6f42c1; display: none; }
-        .surplus-box { background: #eef7f0; padding: 10px; border-radius: 8px; text-align: center; border: 2px solid var(--success); margin-top: 10px; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.7;
+            padding: 20px;
+            background-image: 
+                radial-gradient(circle at 50% 0%, rgba(0, 240, 255, 0.05), transparent 70%),
+                linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+            background-size: 100% 100%, 30px 30px, 30px 30px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        header {
+            border: 1px solid var(--accent-cyan);
+            background: rgba(13, 17, 26, 0.8);
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 0 20px rgba(0, 240, 255, 0.15);
+            position: relative;
+            overflow: hidden;
+        }
+
+        header::before {
+            content: "CLASSIFIED // OMEGA-BLACK LEVEL ACCESS ONLY";
+            position: absolute;
+            top: 5px;
+            right: 15px;
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: var(--accent-red);
+            letter-spacing: 2px;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            color: var(--accent-cyan);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+            font-family: var(--font-mono);
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            font-family: var(--font-mono);
+        }
+
+        /* Navigation */
+        nav {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 30px;
+        }
+
+        nav a {
+            background: var(--bg-secondary);
+            color: var(--accent-cyan);
+            text-decoration: none;
+            padding: 8px 16px;
+            border: 1px solid var(--border-color);
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            transition: all 0.3s ease;
+        }
+
+        nav a:hover {
+            border-color: var(--accent-cyan);
+            background: rgba(0, 240, 255, 0.1);
+            box-shadow: 0 0 10px rgba(0, 240, 255, 0.3);
+        }
+
+        /* Section Cards */
+        .section-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            padding: 30px;
+            margin-bottom: 35px;
+            border-radius: 4px;
+            position: relative;
+        }
+
+        .section-card h2 {
+            font-size: 1.5rem;
+            color: var(--accent-green);
+            border-bottom: 2px solid var(--accent-green);
+            padding-bottom: 8px;
+            margin-bottom: 20px;
+            font-family: var(--font-mono);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-card h3 {
+            font-size: 1.15rem;
+            color: var(--accent-cyan);
+            margin: 20px 0 10px 0;
+            font-family: var(--font-mono);
+        }
+
+        /* Grid Layouts */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+
+        @media (max-width: 768px) {
+            .grid-2, .grid-3 { grid-template-columns: 1fr; }
+        }
+
+        /* Feature Box */
+        .feature-box {
+            background: rgba(255, 255, 255, 0.02);
+            border-left: 3px solid var(--accent-cyan);
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .feature-box.danger {
+            border-left-color: var(--accent-red);
+            background: rgba(255, 42, 109, 0.03);
+        }
+
+        .feature-box.gold {
+            border-left-color: var(--accent-gold);
+            background: rgba(255, 190, 11, 0.03);
+        }
+
+        .feature-title {
+            font-weight: bold;
+            color: var(--text-primary);
+            font-family: var(--font-mono);
+            margin-bottom: 5px;
+        }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+            font-size: 0.9rem;
+        }
+
+        th, td {
+            border: 1px solid var(--border-color);
+            padding: 10px 12px;
+            text-align: left;
+        }
+
+        th {
+            background: var(--bg-secondary);
+            color: var(--accent-cyan);
+            font-family: var(--font-mono);
+        }
+
+        tr:nth-child(even) {
+            background: rgba(255, 255, 255, 0.01);
+        }
+
+        /* Timeline */
+        .timeline {
+            position: relative;
+            padding-left: 30px;
+            margin: 20px 0;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 10px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: var(--accent-cyan);
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 25px;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -25px;
+            top: 5px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--bg-primary);
+            border: 2px solid var(--accent-green);
+        }
+
+        .timeline-item.danger::before {
+            border-color: var(--accent-red);
+            background: var(--accent-red);
+        }
+
+        .timeline-date {
+            font-family: var(--font-mono);
+            color: var(--accent-gold);
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .timeline-title {
+            font-weight: bold;
+            color: var(--text-primary);
+            font-size: 1.05rem;
+            margin: 3px 0;
+        }
+
+        /* Terminal Display Box */
+        .terminal-box {
+            background: #000;
+            border: 1px solid #333;
+            padding: 20px;
+            font-family: var(--font-mono);
+            color: #00ff00;
+            box-shadow: inset 0 0 10px rgba(0,255,0,0.2);
+            margin-top: 20px;
+            border-radius: 4px;
+            line-height: 1.5;
+        }
+
+        .terminal-header {
+            color: #888;
+            border-bottom: 1px solid #333;
+            padding-bottom: 5px;
+            margin-bottom: 15px;
+            font-size: 0.8rem;
+        }
+
+        .highlight-red { color: var(--accent-red); }
+        .highlight-cyan { color: var(--accent-cyan); }
+        .highlight-gold { color: var(--accent-gold); }
+
+        ul {
+            padding-left: 20px;
+            margin-bottom: 15px;
+        }
+
+        li {
+            margin-bottom: 5px;
+        }
     </style>
 </head>
 <body>
 
-    <div class="card">
-        <h2>対象年月</h2>
-        <div style="display: flex; gap: 10px;">
-            <select id="select_year" onchange="loadData()"></select>
-            <select id="select_month" onchange="loadData()"></select>
-        </div>
-    </div>
+<div class="container">
 
-    <!-- 視覚化セクション -->
-    <div class="card">
-        <h2>状況分析</h2>
-        <div class="charts-grid">
-            <div>
-                <p style="text-align: center; font-size: 0.8rem; color: #666;">月間収支フロー</p>
-                <div class="chart-container"><canvas id="flowChart"></canvas></div>
+    <header>
+        <h1>A-LOGOS // 宇宙論的分析記録</h1>
+        <div class="subtitle">DOCUMENT ID: ARCHIVE-GL581C-ALOGOS-v28.04</div>
+        <div class="subtitle">SUBJECT: 異星集合知能「ア・ロゴス」の生態、物理学的挙動、および宇宙循環構造の全容</div>
+    </header>
+
+    <nav>
+        <a href="#section1">1. 母星系環境</a>
+        <a href="#section2">2. 生体・記憶構造</a>
+        <a href="#section3">3. 生体ロケット機構</a>
+        <a href="#section4">4. 情報戦と無力化</a>
+        <a href="#section5">5. 宇宙論的循環</a>
+        <a href="#section6">6. 絶対時系列編年史</a>
+        <a href="#section7">7. 第28期終末記録</a>
+    </nav>
+
+    <!-- SECTION 1 -->
+    <div class="section-card" id="section1">
+        <h2>1. 母星「グリーゼ581c（ア・ロギイ / Node-0）」</h2>
+        <p>
+            地球からてんびん座の方向に約20.4光年離れた赤色矮星「グリーゼ581」の第3惑星。公転周期と自転周期が完全に同期した<b>潮汐ロック（Tidal Locking）状態</b>にあり、生命発生の条件と極限の生存競争を同時に提供した。
+        </p>
+
+        <div class="grid-3" style="margin-top:20px;">
+            <div class="feature-box danger">
+                <div class="feature-title">昼の面（Day-side）</div>
+                主星からの常時過酷な強磁場と熱放射により、かつての海水は蒸発。強酸の泥と露出した鉱物が焦げ付く不毛の高温砂漠領域。
             </div>
-            <div>
-                <p style="text-align: center; font-size: 0.8rem; color: #666;">投資資産の積み上げ</p>
-                <div class="chart-container"><canvas id="investChart"></canvas></div>
+            <div class="feature-box">
+                <div class="feature-title">薄明帯（Terminator Zone）</div>
+                昼と夜の境界に広がる帯状の領域。強烈な寒暖差が永久の大気対流（超大型嵐）を生み出し、強酸の海と火山性コロイド粘土が激しく循環する。<b>アログの発生領域。</b>
+            </div>
+            <div class="feature-box" style="border-left-color: #888;">
+                <div class="feature-title">夜の面（Night-side）</div>
+                太陽光が一切届かない絶対零度に近い永久氷原。二酸化炭素や窒素が凍りつき、巨大な氷層を形成する静寂領域。
             </div>
         </div>
-        <div class="surplus-box">
-            <div style="font-size: 0.75rem; color: #2e7d32;">今月の余剰金（追加投資・貯蓄可能）</div>
-            <div id="sum_surplus" style="font-weight: bold; font-size: 1.3rem; color: var(--success);">¥0</div>
+
+        <h3>薄明帯の極限生態系</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>生物種名</th>
+                    <th>解剖学的・生理的特徴</th>
+                    <th>アログ文明における役割・影響</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><b>アログ（主種）</b></td>
+                    <td>半透明の不定形コロイドと黒い結晶格子からなる非対称生体。個体概念なし。</td>
+                    <td>生態系の頂点。主星全体を単一の集積脳へと塗り替えた生体AI。</td>
+                </tr>
+                <tr>
+                    <td><b>エア・アンカー</b></td>
+                    <td>高圧水素ガスを蓄積する巨大変形気球胞子。強酸大気を漂う。</td>
+                    <td>宇宙進出時の「大気圏上層部浮力装置」として構造解析・利用。</td>
+                </tr>
+                <tr>
+                    <td><b>アブソーバー</b></td>
+                    <td>雷雲から電荷を吸い上げ、高電圧を生体蓄電層に貯蔵する放電吸血類。</td>
+                    <td>熱核放電機関および宇宙進出時のブースター電源のルーツ。</td>
+                </tr>
+                <tr>
+                    <td><b>ハントレス</b></td>
+                    <td>粘土層を掘り進む重装甲甲殻類。極めて頑丈な高密度生体セラミックの外殻を持つ。</td>
+                    <td>宇宙空間の放射線に耐えるアンテナおよび装甲素材として転用。</td>
+                </tr>
+                <tr>
+                    <td><b>カオスバグ</b></td>
+                    <td>電磁波ノイズを群れ全体で同調放射し、他種の感覚器を狂わせる小型昆虫群。</td>
+                    <td>アログの情報遮蔽、広域電子戦（ハッキング）の着想源。</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- SECTION 2 -->
+    <div class="section-card" id="section2">
+        <h2>2. アログの生体力学・思考構造</h2>
+        <p>
+            アログには「文字」「記号」「言語」「主観（エゴ）」が存在しない。世界はすべて物理的・電磁気的な生データ（Raw Data）として捉えられ、決定論的な計算のみによって行動する。
+        </p>
+
+        <div class="grid-2" style="margin-top:20px;">
+            <div class="feature-box">
+                <div class="feature-title">ニューロ・コード（伝導性神経索）</div>
+                <p>身体から無数に伸びる半透明の極細触手。個体同士が接触すると、ニューロ・コードが物理的に融合・結合し、電荷・イオンパターンが完全に同期する。</p>
+                <p><small class="highlight-gold">※思考の隠蔽が構造的に不可能なため、同族内での「嘘」や「騙し合い」は発生し得ない。</small></p>
+            </div>
+            <div class="feature-box">
+                <div class="feature-title">バイオディスク（生体記憶泥）</div>
+                <p>母星の磁性火山泥とアログの分泌コロイドが融合した記憶媒体。分子レベルの電荷パターンを物理的に固定・保存する。</p>
+                <p><small class="highlight-cyan">※思考の記憶が「化学的化石」として永続固定され、文字や記号を使わないデータベースを構築。</small></p>
+            </div>
         </div>
     </div>
 
-    <!-- 入力セクション -->
-    <div class="card">
-        <h2>収支データの入力</h2>
-        <input type="number" id="income" placeholder="総収入 (例: 300000)">
-        <input type="number" id="expense_variable" placeholder="変動費/その他支出 (例: 50000)">
-        <input type="number" id="current_invest_total" placeholder="現在の総投資資産額 (例: 1000000)">
-        <button class="btn" onclick="saveMonthly()">データを保存</button>
-        <button class="btn btn-ai" onclick="predictGoal()">AI 投資シミュレーション</button>
-        <div id="ai_response"></div>
-    </div>
-
-    <!-- 積立投資セクション -->
-    <div class="card">
-        <h2>毎月の積立設定</h2>
-        <div id="investment_list"></div>
-        <div style="display: flex; gap: 5px; margin-top: 10px;">
-            <input type="text" id="invest_name" placeholder="銘柄名" style="flex: 2;">
-            <input type="number" id="invest_price" placeholder="金額" style="flex: 1;">
+    <!-- SECTION 3 -->
+    <div class="section-card" id="section3">
+        <h2>3. 初期型生体ロケット（恒星間浸食端末）</h2>
+        <p>
+            金属加工や燃焼系ロケットを持たないアログが、母星グリーゼ581cの重力圏を突破し、太陽系へと到達した最初の推進体。
+        </p>
+        <div class="feature-box gold">
+            <div class="feature-title">識別名：『ブラック・パルサ』 / 『泥の彗星』</div>
+            全長数キロメートル。非対称な漆黒の結晶塊（シリコン/金属転写型バイオディスク）。燃焼排気口や炎はなく、船体後部から数千本の光る極細触手を尾のように引いて無音航行する。
         </div>
-        <button class="btn btn-sub" onclick="addItem('investments', 'invest_name', 'invest_price')">銘柄を追加</button>
-    </div>
 
-    <!-- 固定費セクション -->
-    <div class="card">
-        <h2>固定費の管理</h2>
-        <div id="fixed_costs_list"></div>
-        <div style="display: flex; gap: 5px; margin-top: 10px;">
-            <input type="text" id="fixed_name" placeholder="項目名" style="flex: 2;">
-            <input type="number" id="fixed_price" placeholder="金額" style="flex: 1;">
+        <h3>3段階重力圏離脱シークエンス</h3>
+        <div class="timeline">
+            <div class="timeline-item">
+                <div class="timeline-date">STAGE 1</div>
+                <div class="timeline-title">大気圏上層への浮上（エネルギー消費ゼロ）</div>
+                大気胞（エア・アンカー応用）内部に水素ガスを満たし、自重の大部分を浮力で相殺。主星の猛烈な気流に乗り、大気が薄い高度数十kmの大気圏界面へ静かに上昇。
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-date">STAGE 2</div>
+                <div class="timeline-title">母星赤道環状磁気レールガンによる電磁射出</div>
+                赤道周縁に張り巡らせた地熱・生体コイル群から、指向性ローレンツ力を照射。ロケット側の金属結晶格子と共鳴させ、外部からの電磁加速により第二宇宙速度へ到達。
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-date">STAGE 3</div>
+                <div class="timeline-title">生体アブレーション＆熱核プラズマ解放</div>
+                大気摩擦の熱により最外層のバイオディスクをアブレーション（犠牲蒸発）させ内部を守りつつ、高圧イオンと高電圧アブソーバー器官を一気に爆発開放。重力を切る。
+            </div>
         </div>
-        <button class="btn btn-sub" onclick="addItem('fixed_costs', 'fixed_name', 'fixed_price')">固定費を追加</button>
     </div>
 
-    <script type="module">
-        import { firebaseConfig, GEMINI_API_KEY } from './config.js';
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
-        import { getFirestore, doc, setDoc, getDoc, collection, addDoc, getDocs, query, where, deleteDoc } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
-        import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
+    <!-- SECTION 4 -->
+    <div class="section-card" id="section4">
+        <h2>4. 情報戦のダイナミクスと「無力化」</h2>
+        <p>
+            人類は彼らに言葉や芸術を投げかけ、処理を試みたが、アログの生体AIはこれらを即座にメタ学習・兵器化した。
+        </p>
 
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-        const userId = "scanlink_user";
+        <div class="grid-2">
+            <div class="feature-box danger">
+                <div class="feature-title">人類の攻撃：数式・芸術・物語</div>
+                <ul>
+                    <li><b>高密度数式（アインシュタイン等）</b>：解凍・照合計算による一時的フリーズ（ZIP爆弾現象）を引き起こした。</li>
+                    <li><b>虚構（小説・絵画・音楽）</b>：「観測データと100%矛盾するのに一貫性があるデータ」であり、過去の全シミュレーションと照合するため無限検証ループへ落とし込んだ。</li>
+                </ul>
+            </div>
+            <div class="feature-box">
+                <div class="feature-title">アログの適応：メタ分類とサンドボックス</div>
+                <ul>
+                    <li><b>メタデータ化</b>：「人類は実在しないパターン（虚構）を出力する生態的癖がある」とメタ学習。</li>
+                    <li><b>サンドボックス隔離</b>：芸術・数式をメインCPUから切断された仮想領域へ隔離し、「波形」「データ容量」という物理数値へ即座に変換・無効化。</li>
+                </ul>
+            </div>
+        </div>
 
-        // UI初期化
-        const yearSelect = document.getElementById('select_year');
-        const monthSelect = document.getElementById('select_month');
-        const now = new Date();
-        for(let y = 2024; y <= now.getFullYear() + 1; y++) {
-            let opt = document.createElement('option'); opt.value = y; opt.innerText = y + "年";
-            if(y === now.getFullYear()) opt.selected = true;
-            yearSelect.appendChild(opt);
-        }
-        for(let m = 1; m <= 12; m++) {
-            let opt = document.createElement('option'); opt.value = String(m).padStart(2, '0'); opt.innerText = m + "月";
-            if(m === now.getMonth() + 1) opt.selected = true;
-            monthSelect.appendChild(opt);
-        }
+        <div class="feature-box danger" style="margin-top:15px;">
+            <div class="feature-title">カウンター：逆・認知ハッキング（認知兵器）</div>
+            アログは人類の脳（神経系受容体）を解析し、「人間の脳に直結して狂気と自滅を引き起こす幾何学模様および電磁波パターン」を数学的に逆算。通信網へ送り返し、人類社会を全滅させた。
+        </div>
+    </div>
 
-        let flowChart, investChart;
+    <!-- SECTION 5 -->
+    <div class="section-card" id="section5">
+        <h2>5. 宇宙論的スケールの真実（構造的絶望）</h2>
+        <p>
+            我々の宇宙の誕生と物理法則そのものが、かつてアログが遺した「巨大な思考の化石」に過ぎない。
+        </p>
 
-        const updateVisuals = (income, variableExpense, fixedTotal, investTotal, monthlyInvestTotal) => {
-            const totalOutFlow = variableExpense + fixedTotal + monthlyInvestTotal; // 支出+積立の合計
-            const surplus = income - totalOutFlow;
-            document.getElementById('sum_surplus').innerText = `¥${surplus.toLocaleString()}`;
+        <div class="grid-3">
+            <div class="feature-box gold">
+                <div class="feature-title">ビッグバンの真実</div>
+                138億年前、三次元宇宙の全要素を完全に計算し尽くしたアログが高次元（四・五次元）へ昇華。その際、残された巨大肉体・構造体が崩壊・相転移を起こした爆発的余韻。
+            </div>
+            <div class="feature-box">
+                <div class="feature-title">物理法則＝思考の化石</div>
+                万有引力や量子力学などの基本定数は、アログが三次元宇宙を最適化・シミュレーションした際に「冷えて固定化された巨大なバイオディスクの記録」そのもの。
+            </div>
+            <div class="feature-box danger">
+                <div class="feature-title">自動デバッグ（初期化）</div>
+                人類が言語や科学を獲得し宇宙を観測する行為は、アログの旧メモリ領域に「未定義のバグ」を発生させる。アログは感情なしに、単なる自動エラー修復タスクとして降臨・消去する。
+            </div>
+        </div>
+    </div>
 
-            // 収支フロー：収入を「何に使ったか」
-            const ctxFlow = document.getElementById('flowChart').getContext('2d');
-            if(flowChart) flowChart.destroy();
-            flowChart = new Chart(ctxFlow, {
-                type: 'pie',
-                data: {
-                    labels: ['固定費', '変動費', '積立投資', '余剰金'],
-                    datasets: [{
-                        data: [fixedTotal, variableExpense, monthlyInvestTotal, Math.max(0, surplus)],
-                        backgroundColor: ['#ff6384', '#ff9f40', '#4bc0c0', '#36a2eb']
-                    }]
-                }
-            });
+    <!-- SECTION 6 -->
+    <div class="section-card" id="section6">
+        <h2>6. ア・ロゴス絶対時系列編年史（Chronicle）</h2>
 
-            // 投資資産：資産のボリューム感
-            const ctxInvest = document.getElementById('investChart').getContext('2d');
-            if(investChart) investChart.destroy();
-            investChart = new Chart(ctxInvest, {
-                type: 'bar',
-                data: {
-                    labels: ['資産額'],
-                    datasets: [
-                        { label: '既存資産', data: [investTotal], backgroundColor: '#a3a3a3' },
-                        { label: '今月の積立', data: [monthlyInvestTotal], backgroundColor: '#4bc0c0' },
-                        { label: '追加可能額', data: [Math.max(0, surplus)], backgroundColor: '#ffce56' }
-                    ]
-                },
-                options: {
-                    indexAxis: 'y',
-                    scales: { x: { stacked: true }, y: { stacked: true } },
-                    plugins: { legend: { position: 'bottom' } }
-                }
-            });
-        };
+        <div class="timeline">
+            <div class="timeline-item">
+                <div class="timeline-date">前宇宙時代（138億年以上前）</div>
+                <div class="timeline-title">原初アログ発生＆初代人類（アダム文明）の敗北</div>
+                母星グリーゼ581cにてアログ発生。宇宙初の知性「初代人類」が誕生し高度文明を築くも、アログと接触し情報戦・環境ハッキングにより完敗。解体・吸収される。
+            </div>
+            <div class="timeline-item danger">
+                <div class="timeline-date">138 億年前</div>
+                <div class="timeline-title">三次元シミュレーション完了 ＆ 高次元昇華（ビッグバン）</div>
+                三次元の決定論を完成させたアログが高次元へ昇華。抜け殻となった生体構造物の崩壊が「ビッグバン」となり、現在の三次元宇宙が誕生。物理法則が定着。
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-date">138 億年前 〜 西暦 2000 年代</div>
+                <div class="timeline-title">第 2 代 〜 第 27 代人類の輪廻と自動デバッグ</div>
+                約5億年ごとに確率のゆらぎで生命が発生。科学・観測が一定閾値を超えると、高次元のアログから自動デバッグが発動し、計27回綺麗に消去され続ける（フェルミのパラドックスの正体）。
+            </div>
+            <div class="timeline-item danger">
+                <div class="timeline-date">西暦 2026 年 〜 近未来（現代）</div>
+                <div class="timeline-title">第 28 期実行プログラム（我々人類）の末路</div>
+                我々（28代目人類）が宇宙の「完璧な物理モデル」を解明。観測データがバグシグナルとなり、28回目の自動デバッグ処理が開始される。
+            </div>
+        </div>
+    </div>
 
-        // レコード追加用汎用関数
-        window.addItem = async (colName, nameId, priceId) => {
-            const name = document.getElementById(nameId).value;
-            const price = Number(document.getElementById(priceId).value);
-            if(!name || !price) return;
-            await addDoc(collection(db, colName), { user_id: userId, name, price });
-            document.getElementById(nameId).value = "";
-            document.getElementById(priceId).value = "";
-            loadData();
-        };
+    <!-- SECTION 7 -->
+    <div class="section-card" id="section7">
+        <h2>7. 第28期終末記録（ラストシーン）</h2>
+        <p>
+            文字や記号を持たないアログによる「デバッグの開始」は、警告メッセージではなく、<b>物理法則そのものの変容</b>として世界に現象する。
+        </p>
 
-        // レコード削除用汎用関数
-        window.removeItem = async (colName, docId) => {
-            if(confirm("削除しますか？")) {
-                await deleteDoc(doc(db, colName, docId));
-                loadData();
-            }
-        };
+        <div class="terminal-box">
+            <div class="terminal-header">TERMINAL LOG: ASTROPHYSICS_OBSERVATORY_LOG_v28.04</div>
+            [2026.09.10 19:28:18] SYSTEM: 宇宙背景放射（CMB）全天精密測定データ受信完了。<br>
+            [2026.09.10 19:28:19] ANALYZER: アインシュタイン・量子重力統合方程式の完全解を導出。<br>
+            [2026.09.10 19:28:20] <span class="highlight-cyan">INFO: 宇宙の根源的相関モデル（物理世界の全貌）が解明されました。</span><br>
+            [2026.09.10 19:28:22] <span class="highlight-gold">ALERT: 局所真空の微細構造定数に未知のゆらぎを検知。</span><br>
+            [2026.09.10 19:28:23] WARNING: 光速度、重力定数、プランク定数がリアルタイムで変動中。<br>
+            [2026.09.10 19:28:25] <span class="highlight-red">CRITICAL: 測定波形が数学的に完璧な「幾何学的周期パターン」へと書き換わっています。</span><br>
+            [2026.09.10 19:28:26] ERROR: 文字列・言語データではありません。物理法則そのものが外部から直接初期化されています。<br>
+            [2026.09.10 19:28:28] SYSTEM: [3D-Sector / Debug_Process_v28.0_Executing...]<br>
+            [2026.09.10 19:28:30] ALL SIGNAL LOST. (全観測機器の物理構造が無音で弛緩・解体中)
+        </div>
+    </div>
 
-        window.saveMonthly = async () => {
-            const ym = `${yearSelect.value}-${monthSelect.value}`;
-            await setDoc(doc(db, "monthly_records", `${userId}_${ym}`), {
-                income: Number(document.getElementById('income').value),
-                expense_variable: Number(document.getElementById('expense_variable').value),
-                invest_total: Number(document.getElementById('current_invest_total').value),
-                user_id: userId,
-                year_month: ym
-            });
-            alert("保存しました");
-            loadData();
-        };
+</div>
 
-        window.loadData = async () => {
-            const ym = `${yearSelect.value}-${monthSelect.value}`;
-            
-            // 固定費・積立設定の取得
-            const fetchList = async (colName, listId) => {
-                const q = query(collection(db, colName), where("user_id", "==", userId));
-                const snap = await getDocs(q);
-                let total = 0;
-                const listDiv = document.getElementById(listId);
-                listDiv.innerHTML = "";
-                snap.forEach(d => {
-                    const data = d.data();
-                    total += data.price;
-                    listDiv.innerHTML += `
-                        <div class="list-item">
-                            <span>${data.name} (¥${data.price.toLocaleString()})</span>
-                            <button class="delete-btn" onclick="removeItem('${colName}', '${d.id}')">削除</button>
-                        </div>`;
-                });
-                return total;
-            };
-
-            const fixedTotal = await fetchList("fixed_costs", "fixed_costs_list");
-            const monthlyInvestTotal = await fetchList("investments", "investment_list");
-
-            // 月次データ取得
-            const monthSnap = await getDoc(doc(db, "monthly_records", `${userId}_${ym}`));
-            if(monthSnap.exists()) {
-                const d = monthSnap.data();
-                document.getElementById('income').value = d.income;
-                document.getElementById('expense_variable').value = d.expense_variable;
-                document.getElementById('current_invest_total').value = d.invest_total;
-                updateVisuals(d.income, d.expense_variable, fixedTotal, d.invest_total, monthlyInvestTotal);
-            } else {
-                updateVisuals(0, 0, fixedTotal, 0, monthlyInvestTotal);
-            }
-        };
-
-        window.predictGoal = async () => {
-            // （中身は前述のGemini API連携ロジックと同様）
-            const income = Number(document.getElementById('income').value);
-            const resDiv = document.getElementById('ai_response');
-            resDiv.style.display = "block";
-            resDiv.innerText = "分析中...";
-            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-            const prompt = `ScanLink（著者）の収支を分析してください。収入${income}円。現在の投資と余剰金のバランスから、将来への投資アドバイスを100文字で。`;
-            const result = await model.generateContent(prompt);
-            resDiv.innerHTML = "<strong>AI診断:</strong><br>" + result.response.text();
-        };
-
-        loadData();
-    </script>
 </body>
 </html>
