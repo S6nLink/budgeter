@@ -165,7 +165,7 @@
     </div>
 
     <!-- 馬番出走パレット -->
-    <section class="bg-slate-800 rounded-xl border border-slate-700 p-3 shadow-lg sticky bottom-2 z-20">
+    <section id="palette-section" class="bg-slate-800 rounded-xl border border-slate-700 p-3 shadow-lg sticky bottom-2 z-20">
       <div class="flex items-center justify-between mb-2">
         <h3 class="font-bold text-sm text-slate-300 flex items-center gap-2">
           <span>🐴</span> 馬番パレット 
@@ -233,6 +233,7 @@
     };
 
     // DOM要素
+    const paletteSectionEl = document.getElementById('palette-section');
     const horsePoolEl = document.getElementById('horse-pool');
     const boardStartEl = document.getElementById('board-start');
     const boardCorner4El = document.getElementById('board-corner4');
@@ -260,9 +261,11 @@
       }
     }
 
-    // パレット描画
+    // パレット描画（全コマ移動でパレットセクション非表示化）
     function renderPool() {
       horsePoolEl.innerHTML = '';
+      let remainingCount = 0;
+
       for (let i = 1; i <= state.totalHorses; i++) {
         const isPlacedStart = !!state.positions.start[i];
         const isPlacedCorner4 = !!state.positions.corner4[i];
@@ -270,8 +273,16 @@
         // 両方のボードに配置されていたらパレットからは非表示
         if (isPlacedStart && isPlacedCorner4) continue;
 
+        remainingCount++;
         const badgeWrapper = createPoolBadge(i);
         horsePoolEl.appendChild(badgeWrapper);
+      }
+
+      // パレットに未配置の馬番が残っていない場合はパレットを非表示に
+      if (remainingCount === 0) {
+        paletteSectionEl.classList.add('hidden');
+      } else {
+        paletteSectionEl.classList.remove('hidden');
       }
     }
 
