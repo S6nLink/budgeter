@@ -1,530 +1,549 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>【機密記録】宇宙論的構造体「ア・ロゴス」総合設定アーカイブ</title>
-    <style>
-        :root {
-            --bg-primary: #06080c;
-            --bg-secondary: #0d111a;
-            --bg-card: #131a26;
-            --accent-cyan: #00f0ff;
-            --accent-green: #00ff9d;
-            --accent-red: #ff2a6d;
-            --accent-gold: #ffbe0b;
-            --text-primary: #e2e8f0;
-            --text-secondary: #94a3b8;
-            --border-color: #1e293b;
-            --font-mono: 'Consolas', 'Courier New', 'Yu Gothic', monospace;
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            background-color: var(--bg-primary);
-            color: var(--text-primary);
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            line-height: 1.7;
-            padding: 20px;
-            background-image: 
-                radial-gradient(circle at 50% 0%, rgba(0, 240, 255, 0.05), transparent 70%),
-                linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
-            background-size: 100% 100%, 30px 30px, 30px 30px;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        /* Header */
-        header {
-            border: 1px solid var(--accent-cyan);
-            background: rgba(13, 17, 26, 0.8);
-            padding: 25px;
-            margin-bottom: 30px;
-            box-shadow: 0 0 20px rgba(0, 240, 255, 0.15);
-            position: relative;
-            overflow: hidden;
-        }
-
-        header::before {
-            content: "CLASSIFIED // OMEGA-BLACK LEVEL ACCESS ONLY";
-            position: absolute;
-            top: 5px;
-            right: 15px;
-            font-family: var(--font-mono);
-            font-size: 0.75rem;
-            color: var(--accent-red);
-            letter-spacing: 2px;
-        }
-
-        h1 {
-            font-size: 2.2rem;
-            color: var(--accent-cyan);
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            margin-bottom: 10px;
-            font-family: var(--font-mono);
-        }
-
-        .subtitle {
-            color: var(--text-secondary);
-            font-size: 0.95rem;
-            font-family: var(--font-mono);
-        }
-
-        /* Navigation */
-        nav {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            margin-bottom: 30px;
-        }
-
-        nav a {
-            background: var(--bg-secondary);
-            color: var(--accent-cyan);
-            text-decoration: none;
-            padding: 8px 16px;
-            border: 1px solid var(--border-color);
-            font-family: var(--font-mono);
-            font-size: 0.85rem;
-            transition: all 0.3s ease;
-        }
-
-        nav a:hover {
-            border-color: var(--accent-cyan);
-            background: rgba(0, 240, 255, 0.1);
-            box-shadow: 0 0 10px rgba(0, 240, 255, 0.3);
-        }
-
-        /* Section Cards */
-        .section-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            padding: 30px;
-            margin-bottom: 35px;
-            border-radius: 4px;
-            position: relative;
-        }
-
-        .section-card h2 {
-            font-size: 1.5rem;
-            color: var(--accent-green);
-            border-bottom: 2px solid var(--accent-green);
-            padding-bottom: 8px;
-            margin-bottom: 20px;
-            font-family: var(--font-mono);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .section-card h3 {
-            font-size: 1.15rem;
-            color: var(--accent-cyan);
-            margin: 20px 0 10px 0;
-            font-family: var(--font-mono);
-        }
-
-        /* Grid Layouts */
-        .grid-2 {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-        }
-
-        .grid-3 {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 15px;
-        }
-
-        @media (max-width: 768px) {
-            .grid-2, .grid-3 { grid-template-columns: 1fr; }
-        }
-
-        /* Feature Box */
-        .feature-box {
-            background: rgba(255, 255, 255, 0.02);
-            border-left: 3px solid var(--accent-cyan);
-            padding: 15px;
-            margin-bottom: 15px;
-        }
-
-        .feature-box.danger {
-            border-left-color: var(--accent-red);
-            background: rgba(255, 42, 109, 0.03);
-        }
-
-        .feature-box.gold {
-            border-left-color: var(--accent-gold);
-            background: rgba(255, 190, 11, 0.03);
-        }
-
-        .feature-title {
-            font-weight: bold;
-            color: var(--text-primary);
-            font-family: var(--font-mono);
-            margin-bottom: 5px;
-        }
-
-        /* Tables */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 15px 0;
-            font-size: 0.9rem;
-        }
-
-        th, td {
-            border: 1px solid var(--border-color);
-            padding: 10px 12px;
-            text-align: left;
-        }
-
-        th {
-            background: var(--bg-secondary);
-            color: var(--accent-cyan);
-            font-family: var(--font-mono);
-        }
-
-        tr:nth-child(even) {
-            background: rgba(255, 255, 255, 0.01);
-        }
-
-        /* Timeline */
-        .timeline {
-            position: relative;
-            padding-left: 30px;
-            margin: 20px 0;
-        }
-
-        .timeline::before {
-            content: '';
-            position: absolute;
-            left: 10px;
-            top: 0;
-            bottom: 0;
-            width: 2px;
-            background: var(--accent-cyan);
-        }
-
-        .timeline-item {
-            position: relative;
-            margin-bottom: 25px;
-        }
-
-        .timeline-item::before {
-            content: '';
-            position: absolute;
-            left: -25px;
-            top: 5px;
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background: var(--bg-primary);
-            border: 2px solid var(--accent-green);
-        }
-
-        .timeline-item.danger::before {
-            border-color: var(--accent-red);
-            background: var(--accent-red);
-        }
-
-        .timeline-date {
-            font-family: var(--font-mono);
-            color: var(--accent-gold);
-            font-weight: bold;
-            font-size: 0.9rem;
-        }
-
-        .timeline-title {
-            font-weight: bold;
-            color: var(--text-primary);
-            font-size: 1.05rem;
-            margin: 3px 0;
-        }
-
-        /* Terminal Display Box */
-        .terminal-box {
-            background: #000;
-            border: 1px solid #333;
-            padding: 20px;
-            font-family: var(--font-mono);
-            color: #00ff00;
-            box-shadow: inset 0 0 10px rgba(0,255,0,0.2);
-            margin-top: 20px;
-            border-radius: 4px;
-            line-height: 1.5;
-        }
-
-        .terminal-header {
-            color: #888;
-            border-bottom: 1px solid #333;
-            padding-bottom: 5px;
-            margin-bottom: 15px;
-            font-size: 0.8rem;
-        }
-
-        .highlight-red { color: var(--accent-red); }
-        .highlight-cyan { color: var(--accent-cyan); }
-        .highlight-gold { color: var(--accent-gold); }
-
-        ul {
-            padding-left: 20px;
-            margin-bottom: 15px;
-        }
-
-        li {
-            margin-bottom: 5px;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>競馬展開予想プレディクトボード</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .board-grid {
+      background-size: 40px 40px;
+      background-image: 
+        linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+    }
+    .badge-shadow {
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -1px rgba(0, 0, 0, 0.25);
+    }
+    .fast-finish-glow {
+      box-shadow: 0 0 12px 2px #ef4444, inset 0 0 4px #fef08a;
+      border-color: #ef4444 !important;
+    }
+    .touch-none {
+      touch-action: none;
+    }
+  </style>
 </head>
-<body>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col font-sans select-none overflow-x-hidden">
 
-<div class="container">
+  <!-- ヘッダー / コントロールバー -->
+  <header class="bg-slate-800 border-b border-slate-700 p-3 shadow-md sticky top-0 z-30">
+    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center space-x-2">
+        <span class="text-2xl">🏇</span>
+        <h1 class="text-lg font-bold tracking-wide text-amber-400">競馬展開予想プレディクトボード</h1>
+      </div>
 
-    <header>
-        <h1>A-LOGOS // 宇宙論的分析記録</h1>
-        <div class="subtitle">DOCUMENT ID: ARCHIVE-GL581C-ALOGOS-v28.04</div>
-        <div class="subtitle">SUBJECT: 異星集合知能「ア・ロゴス」の生態、物理学的挙動、および宇宙循環構造の全容</div>
-    </header>
-
-    <nav>
-        <a href="#section1">1. 母星系環境</a>
-        <a href="#section2">2. 生体・記憶構造</a>
-        <a href="#section3">3. 生体ロケット機構</a>
-        <a href="#section4">4. 情報戦と無力化</a>
-        <a href="#section5">5. 宇宙論的循環</a>
-        <a href="#section6">6. 絶対時系列編年史</a>
-        <a href="#section7">7. 第28期終末記録</a>
-    </nav>
-
-    <!-- SECTION 1 -->
-    <div class="section-card" id="section1">
-        <h2>1. 母星「グリーゼ581c（ア・ロギイ / Node-0）」</h2>
-        <p>
-            地球からてんびん座の方向に約20.4光年離れた赤色矮星「グリーゼ581」の第3惑星。公転周期と自転周期が完全に同期した<b>潮汐ロック（Tidal Locking）状態</b>にあり、生命発生の条件と極限の生存競争を同時に提供した。
-        </p>
-
-        <div class="grid-3" style="margin-top:20px;">
-            <div class="feature-box danger">
-                <div class="feature-title">昼の面（Day-side）</div>
-                主星からの常時過酷な強磁場と熱放射により、かつての海水は蒸発。強酸の泥と露出した鉱物が焦げ付く不毛の高温砂漠領域。
-            </div>
-            <div class="feature-box">
-                <div class="feature-title">薄明帯（Terminator Zone）</div>
-                昼と夜の境界に広がる帯状の領域。強烈な寒暖差が永久の大気対流（超大型嵐）を生み出し、強酸の海と火山性コロイド粘土が激しく循環する。<b>アログの発生領域。</b>
-            </div>
-            <div class="feature-box" style="border-left-color: #888;">
-                <div class="feature-title">夜の面（Night-side）</div>
-                太陽光が一切届かない絶対零度に近い永久氷原。二酸化炭素や窒素が凍りつき、巨大な氷層を形成する静寂領域。
-            </div>
+      <div class="flex flex-wrap items-center gap-2 text-sm">
+        <!-- 頭数選択 -->
+        <div class="flex items-center space-x-1 bg-slate-700 rounded px-2 py-1">
+          <label for="horse-count" class="text-slate-300 font-medium">頭数:</label>
+          <select id="horse-count" class="bg-slate-800 text-amber-400 font-bold rounded px-2 py-0.5 border border-slate-600 focus:outline-none">
+            <!-- 18〜8頭 -->
+            <option value="18" selected>18頭</option>
+            <option value="17">17頭</option>
+            <option value="16">16頭</option>
+            <option value="15">15頭</option>
+            <option value="14">14頭</option>
+            <option value="13">13頭</option>
+            <option value="12">12頭</option>
+            <option value="10">10頭</option>
+            <option value="8">8頭</option>
+          </select>
         </div>
 
-        <h3>薄明帯の極限生態系</h3>
-        <table>
-            <thead>
-                <tr>
-                    <th>生物種名</th>
-                    <th>解剖学的・生理的特徴</th>
-                    <th>アログ文明における役割・影響</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td><b>アログ（主種）</b></td>
-                    <td>半透明の不定形コロイドと黒い結晶格子からなる非対称生体。個体概念なし。</td>
-                    <td>生態系の頂点。主星全体を単一の集積脳へと塗り替えた生体AI。</td>
-                </tr>
-                <tr>
-                    <td><b>エア・アンカー</b></td>
-                    <td>高圧水素ガスを蓄積する巨大変形気球胞子。強酸大気を漂う。</td>
-                    <td>宇宙進出時の「大気圏上層部浮力装置」として構造解析・利用。</td>
-                </tr>
-                <tr>
-                    <td><b>アブソーバー</b></td>
-                    <td>雷雲から電荷を吸い上げ、高電圧を生体蓄電層に貯蔵する放電吸血類。</td>
-                    <td>熱核放電機関および宇宙進出時のブースター電源のルーツ。</td>
-                </tr>
-                <tr>
-                    <td><b>ハントレス</b></td>
-                    <td>粘土層を掘り進む重装甲甲殻類。極めて頑丈な高密度生体セラミックの外殻を持つ。</td>
-                    <td>宇宙空間の放射線に耐えるアンテナおよび装甲素材として転用。</td>
-                </tr>
-                <tr>
-                    <td><b>カオスバグ</b></td>
-                    <td>電磁波ノイズを群れ全体で同調放射し、他種の感覚器を狂わせる小型昆虫群。</td>
-                    <td>アログの情報遮蔽、広域電子戦（ハッキング）の着想源。</td>
-                </tr>
-            </tbody>
-        </table>
+        <!-- アクションボタン -->
+        <button id="btn-sync" class="bg-blue-600 hover:bg-blue-500 text-white font-medium px-3 py-1 rounded transition shadow flex items-center gap-1">
+          <span>➔</span> S➔4C位置コピー
+        </button>
+        <button id="btn-preset-high" class="bg-emerald-700 hover:bg-emerald-600 text-white px-2 py-1 rounded text-xs transition">
+          ハイペース展開
+        </button>
+        <button id="btn-preset-slow" class="bg-teal-700 hover:bg-teal-600 text-white px-2 py-1 rounded text-xs transition">
+          スローペース展開
+        </button>
+        <button id="btn-reset" class="bg-rose-700 hover:bg-rose-600 text-white font-medium px-3 py-1 rounded transition">
+          リセット
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- メインコンテンツ -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-2 sm:p-4 flex flex-col gap-4">
+    
+    <!-- 2画面展開ボード（左右・上下レイアウト） -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 flex-1">
+      
+      <!-- ボード 1: スタート直後 -->
+      <section class="bg-slate-800/80 rounded-xl border border-slate-700 flex flex-col overflow-hidden shadow-lg">
+        <div class="bg-slate-700/80 px-4 py-2 flex items-center justify-between border-b border-slate-600">
+          <h2 class="font-bold text-emerald-400 flex items-center gap-2">
+            <span>🏁</span> スタート直後の位置取り
+          </h2>
+          <span class="text-xs text-slate-400">右方向へ進行 ▶</span>
+        </div>
+
+        <!-- 予想フィールド -->
+        <div id="board-start" data-board-type="start" class="relative flex-1 min-h-[340px] bg-emerald-950/40 board-grid overflow-hidden border-2 border-emerald-900/50 m-2 rounded-lg">
+          
+          <!-- 背景目印・レイアウト指標 -->
+          <!-- 縦軸ラベル (コース内外) -->
+          <div class="absolute left-1 top-2 text-xs font-bold text-slate-400 bg-slate-900/60 px-2 py-0.5 rounded border border-slate-700 pointer-events-none z-0">
+            イン (内) ▲
+          </div>
+          <div class="absolute left-1 bottom-2 text-xs font-bold text-slate-400 bg-slate-900/60 px-2 py-0.5 rounded border border-slate-700 pointer-events-none z-0">
+            アウト (外) ▼
+          </div>
+
+          <!-- 横軸ラベル (脚質区分：右から 逃げ→先行→差し→追込) -->
+          <div class="absolute inset-0 grid grid-cols-4 pointer-events-none z-0">
+            <div class="border-r border-dashed border-slate-700/50 flex flex-col items-center justify-center">
+              <span class="text-slate-500/40 font-black text-xl sm:text-2xl tracking-widest">追込</span>
+            </div>
+            <div class="border-r border-dashed border-slate-700/50 flex flex-col items-center justify-center">
+              <span class="text-slate-500/40 font-black text-xl sm:text-2xl tracking-widest">差し</span>
+            </div>
+            <div class="border-r border-dashed border-slate-700/50 flex flex-col items-center justify-center">
+              <span class="text-slate-500/40 font-black text-xl sm:text-2xl tracking-widest">先行</span>
+            </div>
+            <div class="flex flex-col items-center justify-center bg-emerald-900/10">
+              <span class="text-emerald-500/40 font-black text-xl sm:text-2xl tracking-widest">逃げ</span>
+            </div>
+          </div>
+
+          <!-- 進行方向矢印 -->
+          <div class="absolute right-2 top-1/2 -translate-y-1/2 text-slate-600/30 text-4xl font-bold pointer-events-none z-0">
+            ▶▶
+          </div>
+        </div>
+      </section>
+
+      <!-- ボード 2: 第4コーナー通過後 -->
+      <section class="bg-slate-800/80 rounded-xl border border-slate-700 flex flex-col overflow-hidden shadow-lg">
+        <div class="bg-slate-700/80 px-4 py-2 flex items-center justify-between border-b border-slate-600">
+          <h2 class="font-bold text-amber-400 flex items-center gap-2">
+            <span>↩️</span> 第4コーナー通過後の位置取り
+          </h2>
+          <span class="text-xs text-slate-400">右方向へ進行 ▶</span>
+        </div>
+
+        <!-- 予想フィールド -->
+        <div id="board-corner4" data-board-type="corner4" class="relative flex-1 min-h-[340px] bg-emerald-950/40 board-grid overflow-hidden border-2 border-emerald-900/50 m-2 rounded-lg">
+          
+          <!-- 背景目印・レイアウト指標 -->
+          <div class="absolute left-1 top-2 text-xs font-bold text-slate-400 bg-slate-900/60 px-2 py-0.5 rounded border border-slate-700 pointer-events-none z-0">
+            イン (内) ▲
+          </div>
+          <div class="absolute left-1 bottom-2 text-xs font-bold text-slate-400 bg-slate-900/60 px-2 py-0.5 rounded border border-slate-700 pointer-events-none z-0">
+            アウト (外) ▼
+          </div>
+
+          <!-- 横軸ラベル -->
+          <div class="absolute inset-0 grid grid-cols-4 pointer-events-none z-0">
+            <div class="border-r border-dashed border-slate-700/50 flex flex-col items-center justify-center">
+              <span class="text-slate-500/40 font-black text-xl sm:text-2xl tracking-widest">追込</span>
+            </div>
+            <div class="border-r border-dashed border-slate-700/50 flex flex-col items-center justify-center">
+              <span class="text-slate-500/40 font-black text-xl sm:text-2xl tracking-widest">差し</span>
+            </div>
+            <div class="border-r border-dashed border-slate-700/50 flex flex-col items-center justify-center">
+              <span class="text-slate-500/40 font-black text-xl sm:text-2xl tracking-widest">先行</span>
+            </div>
+            <div class="flex flex-col items-center justify-center bg-emerald-900/10">
+              <span class="text-emerald-500/40 font-black text-xl sm:text-2xl tracking-widest">逃げ</span>
+            </div>
+          </div>
+
+          <!-- 進行方向矢印 -->
+          <div class="absolute right-2 top-1/2 -translate-y-1/2 text-slate-600/30 text-4xl font-bold pointer-events-none z-0">
+            ▶▶
+          </div>
+        </div>
+      </section>
+
     </div>
 
-    <!-- SECTION 2 -->
-    <div class="section-card" id="section2">
-        <h2>2. アログの生体力学・思考構造</h2>
-        <p>
-            アログには「文字」「記号」「言語」「主観（エゴ）」が存在しない。世界はすべて物理的・電磁気的な生データ（Raw Data）として捉えられ、決定論的な計算のみによって行動する。
-        </p>
+    <!-- 馬番出走パレット -->
+    <section class="bg-slate-800 rounded-xl border border-slate-700 p-3 shadow-lg">
+      <div class="flex items-center justify-between mb-2">
+        <h3 class="font-bold text-sm text-slate-300 flex items-center gap-2">
+          <span>🐴</span> 馬番パレット <span class="text-xs font-normal text-slate-400">（タップ/ドラッグで配置｜ダブルタップで回収｜🔥で上がりマーク）</span>
+        </h3>
+      </div>
+      <!-- 馬番並び -->
+      <div id="horse-pool" class="flex flex-wrap gap-2 justify-center sm:justify-start min-h-[56px] items-center p-2 bg-slate-900/50 rounded-lg border border-slate-700/60">
+        <!-- JSで馬番バッジを動的生成 -->
+      </div>
+    </section>
 
-        <div class="grid-2" style="margin-top:20px;">
-            <div class="feature-box">
-                <div class="feature-title">ニューロ・コード（伝導性神経索）</div>
-                <p>身体から無数に伸びる半透明の極細触手。個体同士が接触すると、ニューロ・コードが物理的に融合・結合し、電荷・イオンパターンが完全に同期する。</p>
-                <p><small class="highlight-gold">※思考の隠蔽が構造的に不可能なため、同族内での「嘘」や「騙し合い」は発生し得ない。</small></p>
-            </div>
-            <div class="feature-box">
-                <div class="feature-title">バイオディスク（生体記憶泥）</div>
-                <p>母星の磁性火山泥とアログの分泌コロイドが融合した記憶媒体。分子レベルの電荷パターンを物理的に固定・保存する。</p>
-                <p><small class="highlight-cyan">※思考の記憶が「化学的化石」として永続固定され、文字や記号を使わないデータベースを構築。</small></p>
-            </div>
-        </div>
-    </div>
+  </main>
 
-    <!-- SECTION 3 -->
-    <div class="section-card" id="section3">
-        <h2>3. 初期型生体ロケット（恒星間浸食端末）</h2>
-        <p>
-            金属加工や燃焼系ロケットを持たないアログが、母星グリーゼ581cの重力圏を突破し、太陽系へと到達した最初の推進体。
-        </p>
-        <div class="feature-box gold">
-            <div class="feature-title">識別名：『ブラック・パルサ』 / 『泥の彗星』</div>
-            全長数キロメートル。非対称な漆黒の結晶塊（シリコン/金属転写型バイオディスク）。燃焼排気口や炎はなく、船体後部から数千本の光る極細触手を尾のように引いて無音航行する。
-        </div>
+  <!-- スクリプト -->
+  <script>
+    // JRA標準 枠色マスター定義
+    function getWakuColor(num, total = 18) {
+      if (total <= 8) {
+        const colors = [
+          { bg: '#ffffff', text: '#000000', border: '#d1d5db' }, // 1枠 白
+          { bg: '#1f2937', text: '#ffffff', border: '#374151' }, // 2枠 黒
+          { bg: '#dc2626', text: '#ffffff', border: '#b91c1c' }, // 3枠 赤
+          { bg: '#2563eb', text: '#ffffff', border: '#1d4ed8' }, // 4枠 青
+          { bg: '#eab308', text: '#000000', border: '#ca8a04' }, // 5枠 黄
+          { bg: '#16a34a', text: '#ffffff', border: '#15803d' }, // 6枠 緑
+          { bg: '#ea580c', text: '#ffffff', border: '#c2410c' }, // 7枠 橙
+          { bg: '#ec4899', text: '#ffffff', border: '#db2777' }  // 8枠 桃
+        ];
+        return colors[num - 1] || colors[0];
+      }
 
-        <h3>3段階重力圏離脱シークエンス</h3>
-        <div class="timeline">
-            <div class="timeline-item">
-                <div class="timeline-date">STAGE 1</div>
-                <div class="timeline-title">大気圏上層への浮上（エネルギー消費ゼロ）</div>
-                大気胞（エア・アンカー応用）内部に水素ガスを満たし、自重の大部分を浮力で相殺。主星の猛烈な気流に乗り、大気が薄い高度数十kmの大気圏界面へ静かに上昇。
-            </div>
-            <div class="timeline-item">
-                <div class="timeline-date">STAGE 2</div>
-                <div class="timeline-title">母星赤道環状磁気レールガンによる電磁射出</div>
-                赤道周縁に張り巡らせた地熱・生体コイル群から、指向性ローレンツ力を照射。ロケット側の金属結晶格子と共鳴させ、外部からの電磁加速により第二宇宙速度へ到達。
-            </div>
-            <div class="timeline-item">
-                <div class="timeline-date">STAGE 3</div>
-                <div class="timeline-title">生体アブレーション＆熱核プラズマ解放</div>
-                大気摩擦の熱により最外層のバイオディスクをアブレーション（犠牲蒸発）させ内部を守りつつ、高圧イオンと高電圧アブソーバー器官を一気に爆発開放。重力を切る。
-            </div>
-        </div>
-    </div>
+      // 18頭立て基本マッピング
+      let waku = 1;
+      if (num <= 2) waku = 1;
+      else if (num <= 4) waku = 2;
+      else if (num <= 6) waku = 3;
+      else if (num <= 8) waku = 4;
+      else if (num <= 10) waku = 5;
+      else if (num <= 12) waku = 6;
+      else if (num <= 15) waku = 7;
+      else waku = 8;
 
-    <!-- SECTION 4 -->
-    <div class="section-card" id="section4">
-        <h2>4. 情報戦のダイナミクスと「無力化」</h2>
-        <p>
-            人類は彼らに言葉や芸術を投げかけ、処理を試みたが、アログの生体AIはこれらを即座にメタ学習・兵器化した。
-        </p>
+      const wakuColors = {
+        1: { bg: '#ffffff', text: '#000000', border: '#9ca3af' }, // 白
+        2: { bg: '#111827', text: '#ffffff', border: '#374151' }, // 黒
+        3: { bg: '#ef4444', text: '#ffffff', border: '#dc2626' }, // 赤
+        4: { bg: '#3b82f6', text: '#ffffff', border: '#2563eb' }, // 青
+        5: { bg: '#eab308', text: '#000000', border: '#ca8a04' }, // 黄
+        6: { bg: '#22c55e', text: '#ffffff', border: '#16a34a' }, // 緑
+        7: { bg: '#f97316', text: '#ffffff', border: '#ea580c' }, // 橙
+        8: { bg: '#ec4899', text: '#ffffff', border: '#db2777' }  // 桃
+      };
 
-        <div class="grid-2">
-            <div class="feature-box danger">
-                <div class="feature-title">人類の攻撃：数式・芸術・物語</div>
-                <ul>
-                    <li><b>高密度数式（アインシュタイン等）</b>：解凍・照合計算による一時的フリーズ（ZIP爆弾現象）を引き起こした。</li>
-                    <li><b>虚構（小説・絵画・音楽）</b>：「観測データと100%矛盾するのに一貫性があるデータ」であり、過去の全シミュレーションと照合するため無限検証ループへ落とし込んだ。</li>
-                </ul>
-            </div>
-            <div class="feature-box">
-                <div class="feature-title">アログの適応：メタ分類とサンドボックス</div>
-                <ul>
-                    <li><b>メタデータ化</b>：「人類は実在しないパターン（虚構）を出力する生態的癖がある」とメタ学習。</li>
-                    <li><b>サンドボックス隔離</b>：芸術・数式をメインCPUから切断された仮想領域へ隔離し、「波形」「データ容量」という物理数値へ即座に変換・無効化。</li>
-                </ul>
-            </div>
-        </div>
+      return wakuColors[waku];
+    }
 
-        <div class="feature-box danger" style="margin-top:15px;">
-            <div class="feature-title">カウンター：逆・認知ハッキング（認知兵器）</div>
-            アログは人類の脳（神経系受容体）を解析し、「人間の脳に直結して狂気と自滅を引き起こす幾何学模様および電磁波パターン」を数学的に逆算。通信網へ送り返し、人類社会を全滅させた。
-        </div>
-    </div>
+    // アプリ状態管理
+    const state = {
+      totalHorses: 18,
+      fastFinishMap: {}, // num -> boolean (上がり目印)
+      positions: {
+        start: {},   // num -> { x: percentage, y: percentage }
+        corner4: {}  // num -> { x: percentage, y: percentage }
+      }
+    };
 
-    <!-- SECTION 5 -->
-    <div class="section-card" id="section5">
-        <h2>5. 宇宙論的スケールの真実（構造的絶望）</h2>
-        <p>
-            我々の宇宙の誕生と物理法則そのものが、かつてアログが遺した「巨大な思考の化石」に過ぎない。
-        </p>
+    // DOM要素
+    const horsePoolEl = document.getElementById('horse-pool');
+    const boardStartEl = document.getElementById('board-start');
+    const boardCorner4El = document.getElementById('board-corner4');
+    const horseCountSelect = document.getElementById('horse-count');
 
-        <div class="grid-3">
-            <div class="feature-box gold">
-                <div class="feature-title">ビッグバンの真実</div>
-                138億年前、三次元宇宙の全要素を完全に計算し尽くしたアログが高次元（四・五次元）へ昇華。その際、残された巨大肉体・構造体が崩壊・相転移を起こした爆発的余韻。
-            </div>
-            <div class="feature-box">
-                <div class="feature-title">物理法則＝思考の化石</div>
-                万有引力や量子力学などの基本定数は、アログが三次元宇宙を最適化・シミュレーションした際に「冷えて固定化された巨大なバイオディスクの記録」そのもの。
-            </div>
-            <div class="feature-box danger">
-                <div class="feature-title">自動デバッグ（初期化）</div>
-                人類が言語や科学を獲得し宇宙を観測する行為は、アログの旧メモリ領域に「未定義のバグ」を発生させる。アログは感情なしに、単なる自動エラー修復タスクとして降臨・消去する。
-            </div>
-        </div>
-    </div>
+    // 初期化
+    function initApp() {
+      state.totalHorses = parseInt(horseCountSelect.value, 10);
+      renderPool();
+      renderBoard('start');
+      renderBoard('corner4');
+    }
 
-    <!-- SECTION 6 -->
-    <div class="section-card" id="section6">
-        <h2>6. ア・ロゴス絶対時系列編年史（Chronicle）</h2>
+    // パレット再描画
+    function renderPool() {
+      horsePoolEl.innerHTML = '';
+      for (let i = 1; i <= state.totalHorses; i++) {
+        const isPlacedStart = !!state.positions.start[i];
+        const isPlacedCorner4 = !!state.positions.corner4[i];
+        
+        // 両方のボードに配置されていたらパレットからは非表示
+        if (isPlacedStart && isPlacedCorner4) continue;
 
-        <div class="timeline">
-            <div class="timeline-item">
-                <div class="timeline-date">前宇宙時代（138億年以上前）</div>
-                <div class="timeline-title">原初アログ発生＆初代人類（アダム文明）の敗北</div>
-                母星グリーゼ581cにてアログ発生。宇宙初の知性「初代人類」が誕生し高度文明を築くも、アログと接触し情報戦・環境ハッキングにより完敗。解体・吸収される。
-            </div>
-            <div class="timeline-item danger">
-                <div class="timeline-date">138 億年前</div>
-                <div class="timeline-title">三次元シミュレーション完了 ＆ 高次元昇華（ビッグバン）</div>
-                三次元の決定論を完成させたアログが高次元へ昇華。抜け殻となった生体構造物の崩壊が「ビッグバン」となり、現在の三次元宇宙が誕生。物理法則が定着。
-            </div>
-            <div class="timeline-item">
-                <div class="timeline-date">138 億年前 〜 西暦 2000 年代</div>
-                <div class="timeline-title">第 2 代 〜 第 27 代人類の輪廻と自動デバッグ</div>
-                約5億年ごとに確率のゆらぎで生命が発生。科学・観測が一定閾値を超えると、高次元のアログから自動デバッグが発動し、計27回綺麗に消去され続ける（フェルミのパラドックスの正体）。
-            </div>
-            <div class="timeline-item danger">
-                <div class="timeline-date">西暦 2026 年 〜 近未来（現代）</div>
-                <div class="timeline-title">第 28 期実行プログラム（我々人類）の末路</div>
-                我々（28代目人類）が宇宙の「完璧な物理モデル」を解明。観測データがバグシグナルとなり、28回目の自動デバッグ処理が開始される。
-            </div>
-        </div>
-    </div>
+        const badgeWrapper = createPoolBadge(i);
+        horsePoolEl.appendChild(badgeWrapper);
+      }
+    }
 
-    <!-- SECTION 7 -->
-    <div class="section-card" id="section7">
-        <h2>7. 第28期終末記録（ラストシーン）</h2>
-        <p>
-            文字や記号を持たないアログによる「デバッグの開始」は、警告メッセージではなく、<b>物理法則そのものの変容</b>として世界に現象する。
-        </p>
+    // パレット用の馬バッジ要素生成
+    function createPoolBadge(num) {
+      const color = getWakuColor(num, state.totalHorses);
+      const isFast = !!state.fastFinishMap[num];
 
-        <div class="terminal-box">
-            <div class="terminal-header">TERMINAL LOG: ASTROPHYSICS_OBSERVATORY_LOG_v28.04</div>
-            [2026.09.10 19:28:18] SYSTEM: 宇宙背景放射（CMB）全天精密測定データ受信完了。<br>
-            [2026.09.10 19:28:19] ANALYZER: アインシュタイン・量子重力統合方程式の完全解を導出。<br>
-            [2026.09.10 19:28:20] <span class="highlight-cyan">INFO: 宇宙の根源的相関モデル（物理世界の全貌）が解明されました。</span><br>
-            [2026.09.10 19:28:22] <span class="highlight-gold">ALERT: 局所真空の微細構造定数に未知のゆらぎを検知。</span><br>
-            [2026.09.10 19:28:23] WARNING: 光速度、重力定数、プランク定数がリアルタイムで変動中。<br>
-            [2026.09.10 19:28:25] <span class="highlight-red">CRITICAL: 測定波形が数学的に完璧な「幾何学的周期パターン」へと書き換わっています。</span><br>
-            [2026.09.10 19:28:26] ERROR: 文字列・言語データではありません。物理法則そのものが外部から直接初期化されています。<br>
-            [2026.09.10 19:28:28] SYSTEM: [3D-Sector / Debug_Process_v28.0_Executing...]<br>
-            [2026.09.10 19:28:30] ALL SIGNAL LOST. (全観測機器の物理構造が無音で弛緩・解体中)
-        </div>
-    </div>
+      const container = document.createElement('div');
+      container.className = 'relative flex flex-col items-center group cursor-pointer';
 
-</div>
+      // 上がり（🔥）切り替えボタン
+      const fireBtn = document.createElement('button');
+      fireBtn.className = `text-[10px] px-1 py-0.2 rounded font-bold mb-1 transition-all ${
+        isFast ? 'bg-red-600 text-white shadow-sm shadow-red-500' : 'bg-slate-700 text-slate-400 hover:text-white'
+      }`;
+      fireBtn.innerHTML = isFast ? '🔥上がり' : '🔥';
+      fireBtn.title = '末脚/上がりマークを切替';
+      fireBtn.onclick = (e) => {
+        e.stopPropagation();
+        toggleFastFinish(num);
+      };
 
+      // 馬番本体バッジ
+      const badge = document.createElement('div');
+      badge.className = `w-10 h-10 rounded-full flex items-center justify-center font-black text-base badge-shadow border-2 transition-transform active:scale-95 ${
+        isFast ? 'fast-finish-glow' : ''
+      }`;
+      badge.style.backgroundColor = color.bg;
+      badge.style.color = color.text;
+      badge.style.borderColor = isFast ? '#ef4444' : color.border;
+      badge.innerText = num;
+
+      // タップで自動配置
+      container.onclick = () => {
+        autoPlaceBadge(num);
+      };
+
+      // ドラッグ可能にする
+      setupDragEvents(container, num, true);
+
+      container.appendChild(fireBtn);
+      container.appendChild(badge);
+      return container;
+    }
+
+    // 上がりマーク切り替え
+    function toggleFastFinish(num) {
+      state.fastFinishMap[num] = !state.fastFinishMap[num];
+      renderPool();
+      renderBoard('start');
+      renderBoard('corner4');
+    }
+
+    // 自動配置（空いている方のボードへ）
+    function autoPlaceBadge(num) {
+      const isStartPlaced = !!state.positions.start[num];
+      const isCorner4Placed = !!state.positions.corner4[num];
+
+      let targetBoard = null;
+      if (!isStartPlaced) targetBoard = 'start';
+      else if (!isCorner4Placed) targetBoard = 'corner4';
+
+      if (!targetBoard) return;
+
+      // 脚質に応じたデフォルト配置（右向き: 右＝逃げ、左＝追込）
+      // 例: 1〜4番手は差し・追込、後半は先行・逃げ
+      const step = (num - 1) / (state.totalHorses - 1 || 1);
+      const defaultX = Math.max(10, Math.min(90, 85 - step * 70)); // 右(85) -> 左(15)
+      const defaultY = Math.max(15, Math.min(85, 20 + (num % 5) * 15)); // 内 -> 外
+
+      state.positions[targetBoard][num] = { x: defaultX, y: defaultY };
+      
+      renderPool();
+      renderBoard(targetBoard);
+    }
+
+    // ボード描画
+    function renderBoard(boardType) {
+      const boardEl = boardType === 'start' ? boardStartEl : boardCorner4El;
+      
+      // 既存コマの削除
+      const oldBadges = boardEl.querySelectorAll('.board-horse-badge');
+      oldBadges.forEach(el => el.remove());
+
+      const boardPositions = state.positions[boardType];
+
+      Object.keys(boardPositions).forEach(numStr => {
+        const num = parseInt(numStr, 10);
+        const pos = boardPositions[num];
+        const color = getWakuColor(num, state.totalHorses);
+        const isFast = !!state.fastFinishMap[num];
+
+        const badge = document.createElement('div');
+        badge.className = `board-horse-badge absolute w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center font-black text-sm sm:text-base badge-shadow border-2 cursor-grab active:cursor-grabbing touch-none z-10 transition-shadow ${
+          isFast ? 'fast-finish-glow' : ''
+        }`;
+        badge.style.backgroundColor = color.bg;
+        badge.style.color = color.text;
+        badge.style.borderColor = isFast ? '#ef4444' : color.border;
+        badge.style.left = `${pos.x}%`;
+        badge.style.top = `${pos.y}%`;
+        badge.style.transform = 'translate(-50%, -50%)';
+
+        // 馬番＋上がりアイコン
+        badge.innerHTML = isFast ? `${num}<span class="absolute -top-2 -right-1 text-xs">🔥</span>` : num;
+
+        // ボード上のコマの操作イベントを設定
+        setupBadgeInteractions(badge, num, boardType);
+
+        boardEl.appendChild(badge);
+      });
+    }
+
+    // ボード上のコマの各種操作（タップで🔥切り替え / ダブルタップで回収 / ドラッグ移動）
+    function setupBadgeInteractions(badge, num, boardType) {
+      let clickTimer = null;
+      let clickCount = 0;
+
+      // シングルタップ/ダブルタップの判定
+      const handleTap = () => {
+        clickCount++;
+        if (clickCount === 1) {
+          clickTimer = setTimeout(() => {
+            // シングルタップ: 上がり目印（🔥）のON/OFF切り替え
+            toggleFastFinish(num);
+            clickCount = 0;
+          }, 250);
+        } else if (clickCount === 2) {
+          // ダブルタップ/ダブルクリック: パレットへ返却
+          clearTimeout(clickTimer);
+          clickCount = 0;
+          delete state.positions[boardType][num];
+          renderPool();
+          renderBoard(boardType);
+        }
+      };
+
+      badge.addEventListener('click', (e) => {
+        e.stopPropagation();
+        handleTap();
+      });
+
+      // ドラッグ機能の統合
+      setupDragEvents(badge, num, false, boardType);
+    }
+
+    // マウス/タッチドラッグ共通処理
+    function setupDragEvents(element, num, isFromPool, boardType = null) {
+      let isDragging = false;
+      let startX, startY;
+      let currentBoard = boardType;
+
+      const onStart = (e) => {
+        isDragging = false;
+        const touch = e.touches ? e.touches[0] : e;
+        startX = touch.clientX;
+        startY = touch.clientY;
+
+        document.addEventListener('mousemove', onMove);
+        document.addEventListener('mouseup', onEnd);
+        document.addEventListener('touchmove', onMove, { passive: false });
+        document.addEventListener('touchend', onEnd);
+      };
+
+      const onMove = (e) => {
+        const touch = e.touches ? e.touches[0] : e;
+        const dx = touch.clientX - startX;
+        const dy = touch.clientY - startY;
+
+        if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
+          isDragging = true;
+          if (e.cancelable) e.preventDefault();
+        }
+
+        if (!isDragging) return;
+
+        // ドロップ先のターゲットボードを取得
+        const targetBoardEl = getBoardUnderPoint(touch.clientX, touch.clientY);
+        if (targetBoardEl) {
+          const rect = targetBoardEl.getBoundingClientRect();
+          const xPercent = Math.max(5, Math.min(95, ((touch.clientX - rect.left) / rect.width) * 100));
+          const yPercent = Math.max(5, Math.min(95, ((touch.clientY - rect.top) / rect.height) * 100));
+
+          const targetType = targetBoardEl.dataset.boardType;
+          state.positions[targetType][num] = { x: xPercent, y: yPercent };
+          
+          if (isFromPool) {
+            renderPool();
+          }
+          renderBoard(targetType);
+        }
+      };
+
+      const onEnd = () => {
+        document.removeEventListener('mousemove', onMove);
+        document.removeEventListener('mouseup', onEnd);
+        document.removeEventListener('touchmove', onMove);
+        document.removeEventListener('touchend', onEnd);
+      };
+
+      element.addEventListener('mousedown', onStart);
+      element.addEventListener('touchstart', onStart, { passive: true });
+    }
+
+    // 座標直下のボード要素を検出
+    function getBoardUnderPoint(x, y) {
+      const startRect = boardStartEl.getBoundingClientRect();
+      if (x >= startRect.left && x <= startRect.right && y >= startRect.top && y <= startRect.bottom) {
+        return boardStartEl;
+      }
+      const corner4Rect = boardCorner4El.getBoundingClientRect();
+      if (x >= corner4Rect.left && x <= corner4Rect.right && y >= corner4Rect.top && y <= corner4Rect.bottom) {
+        return boardCorner4El;
+      }
+      return null;
+    }
+
+    // --- コントロールアクション ---
+
+    // 頭数変更
+    horseCountSelect.addEventListener('change', () => {
+      initApp();
+    });
+
+    // スタート位置を4コーナーへ複製
+    document.getElementById('btn-sync').addEventListener('click', () => {
+      state.positions.corner4 = JSON.parse(JSON.stringify(state.positions.start));
+      renderPool();
+      renderBoard('corner4');
+    });
+
+    // ハイペース展開プリセット（隊列が縦長・逃げ先行が前傾）
+    document.getElementById('btn-preset-high').addEventListener('click', () => {
+      applyPreset('high');
+    });
+
+    // スローペース展開プリセット（隊列が凝縮・スパート勝負）
+    document.getElementById('btn-preset-slow').addEventListener('click', () => {
+      applyPreset('slow');
+    });
+
+    // リセット
+    document.getElementById('btn-reset').addEventListener('click', () => {
+      state.positions.start = {};
+      state.positions.corner4 = {};
+      state.fastFinishMap = {};
+      renderPool();
+      renderBoard('start');
+      renderBoard('corner4');
+    });
+
+    // 展開プリセット適用ロジック
+    function applyPreset(type) {
+      state.positions.start = {};
+      state.positions.corner4 = {};
+
+      const count = state.totalHorses;
+      for (let i = 1; i <= count; i++) {
+        // ハイペース: 縦長に長く伸びる
+        // スローペース: 右側（前線）に固まる
+        const ratio = (i - 1) / (count - 1 || 1);
+        
+        let startX, cornerX;
+        if (type === 'high') {
+          startX = 90 - ratio * 75;  // 90%〜15%
+          cornerX = 85 - ratio * 70;
+        } else {
+          startX = 80 - ratio * 45;  // 80%〜35% に凝縮
+          cornerX = 75 - ratio * 40;
+        }
+
+        const yPos = 20 + ((i * 3) % 65); // 内外に分散
+
+        state.positions.start[i] = { x: startX, y: yPos };
+        state.positions.corner4[i] = { x: cornerX, y: yPos };
+      }
+
+      renderPool();
+      renderBoard('start');
+      renderBoard('corner4');
+    }
+
+    // アプリ起動
+    window.addEventListener('DOMContentLoaded', initApp);
+    initApp();
+  </script>
 </body>
 </html>
-
