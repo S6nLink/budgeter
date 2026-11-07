@@ -2,10 +2,14 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>競馬展開予想プレディクトボード</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
+    /* スマホでの画面スクロール・拡大縮小干渉を防止 */
+    body {
+      touch-action: manipulation;
+    }
     .board-grid {
       background-size: 40px 40px;
       background-image: 
@@ -19,8 +23,14 @@
       box-shadow: 0 0 12px 2px #ef4444, inset 0 0 4px #fef08a;
       border-color: #ef4444 !important;
     }
-    .touch-none {
+    .touch-action-none {
       touch-action: none;
+    }
+    /* パレットで選択中のハイライト */
+    .selected-badge {
+      ring: 4px;
+      ring-color: #f59e0b;
+      transform: scale(1.15);
     }
   </style>
 </head>
@@ -39,7 +49,6 @@
         <div class="flex items-center space-x-1 bg-slate-700 rounded px-2 py-1">
           <label for="horse-count" class="text-slate-300 font-medium">頭数:</label>
           <select id="horse-count" class="bg-slate-800 text-amber-400 font-bold rounded px-2 py-0.5 border border-slate-600 focus:outline-none">
-            <!-- 18〜8頭 -->
             <option value="18" selected>18頭</option>
             <option value="17">17頭</option>
             <option value="16">16頭</option>
@@ -85,10 +94,8 @@
         </div>
 
         <!-- 予想フィールド -->
-        <div id="board-start" data-board-type="start" class="relative flex-1 min-h-[340px] bg-emerald-950/40 board-grid overflow-hidden border-2 border-emerald-900/50 m-2 rounded-lg">
+        <div id="board-start" data-board-type="start" class="relative flex-1 min-h-[340px] bg-emerald-950/40 board-grid overflow-hidden border-2 border-emerald-900/50 m-2 rounded-lg cursor-pointer">
           
-          <!-- 背景目印・レイアウト指標 -->
-          <!-- 縦軸ラベル (コース内外) -->
           <div class="absolute left-1 top-2 text-xs font-bold text-slate-400 bg-slate-900/60 px-2 py-0.5 rounded border border-slate-700 pointer-events-none z-0">
             イン (内) ▲
           </div>
@@ -96,7 +103,6 @@
             アウト (外) ▼
           </div>
 
-          <!-- 横軸ラベル (脚質区分：右から 逃げ→先行→差し→追込) -->
           <div class="absolute inset-0 grid grid-cols-4 pointer-events-none z-0">
             <div class="border-r border-dashed border-slate-700/50 flex flex-col items-center justify-center">
               <span class="text-slate-500/40 font-black text-xl sm:text-2xl tracking-widest">追込</span>
@@ -112,7 +118,6 @@
             </div>
           </div>
 
-          <!-- 進行方向矢印 -->
           <div class="absolute right-2 top-1/2 -translate-y-1/2 text-slate-600/30 text-4xl font-bold pointer-events-none z-0">
             ▶▶
           </div>
@@ -129,9 +134,8 @@
         </div>
 
         <!-- 予想フィールド -->
-        <div id="board-corner4" data-board-type="corner4" class="relative flex-1 min-h-[340px] bg-emerald-950/40 board-grid overflow-hidden border-2 border-emerald-900/50 m-2 rounded-lg">
+        <div id="board-corner4" data-board-type="corner4" class="relative flex-1 min-h-[340px] bg-emerald-950/40 board-grid overflow-hidden border-2 border-emerald-900/50 m-2 rounded-lg cursor-pointer">
           
-          <!-- 背景目印・レイアウト指標 -->
           <div class="absolute left-1 top-2 text-xs font-bold text-slate-400 bg-slate-900/60 px-2 py-0.5 rounded border border-slate-700 pointer-events-none z-0">
             イン (内) ▲
           </div>
@@ -139,7 +143,6 @@
             アウト (外) ▼
           </div>
 
-          <!-- 横軸ラベル -->
           <div class="absolute inset-0 grid grid-cols-4 pointer-events-none z-0">
             <div class="border-r border-dashed border-slate-700/50 flex flex-col items-center justify-center">
               <span class="text-slate-500/40 font-black text-xl sm:text-2xl tracking-widest">追込</span>
@@ -155,7 +158,6 @@
             </div>
           </div>
 
-          <!-- 進行方向矢印 -->
           <div class="absolute right-2 top-1/2 -translate-y-1/2 text-slate-600/30 text-4xl font-bold pointer-events-none z-0">
             ▶▶
           </div>
@@ -165,39 +167,37 @@
     </div>
 
     <!-- 馬番出走パレット -->
-    <section class="bg-slate-800 rounded-xl border border-slate-700 p-3 shadow-lg">
+    <section class="bg-slate-800 rounded-xl border border-slate-700 p-3 shadow-lg sticky bottom-2 z-20">
       <div class="flex items-center justify-between mb-2">
         <h3 class="font-bold text-sm text-slate-300 flex items-center gap-2">
-          <span>🐴</span> 馬番パレット <span class="text-xs font-normal text-slate-400">（タップ/ドラッグで配置｜ダブルタップで回収｜🔥で上がりマーク）</span>
+          <span>🐴</span> 馬番パレット 
+          <span class="text-xs font-normal text-amber-300">（スライド移動 or タップ選択➔ボードをタップして配置）</span>
         </h3>
       </div>
       <!-- 馬番並び -->
-      <div id="horse-pool" class="flex flex-wrap gap-2 justify-center sm:justify-start min-h-[56px] items-center p-2 bg-slate-900/50 rounded-lg border border-slate-700/60">
-        <!-- JSで馬番バッジを動的生成 -->
+      <div id="horse-pool" class="flex flex-wrap gap-2 justify-center sm:justify-start min-h-[56px] items-center p-2 bg-slate-900/50 rounded-lg border border-slate-700/60 touch-action-none">
       </div>
     </section>
 
   </main>
 
-  <!-- スクリプト -->
   <script>
     // JRA標準 枠色マスター定義
     function getWakuColor(num, total = 18) {
       if (total <= 8) {
         const colors = [
-          { bg: '#ffffff', text: '#000000', border: '#d1d5db' }, // 1枠 白
-          { bg: '#1f2937', text: '#ffffff', border: '#374151' }, // 2枠 黒
-          { bg: '#dc2626', text: '#ffffff', border: '#b91c1c' }, // 3枠 赤
-          { bg: '#2563eb', text: '#ffffff', border: '#1d4ed8' }, // 4枠 青
-          { bg: '#eab308', text: '#000000', border: '#ca8a04' }, // 5枠 黄
-          { bg: '#16a34a', text: '#ffffff', border: '#15803d' }, // 6枠 緑
-          { bg: '#ea580c', text: '#ffffff', border: '#c2410c' }, // 7枠 橙
-          { bg: '#ec4899', text: '#ffffff', border: '#db2777' }  // 8枠 桃
+          { bg: '#ffffff', text: '#000000', border: '#9ca3af' },
+          { bg: '#111827', text: '#ffffff', border: '#374151' },
+          { bg: '#ef4444', text: '#ffffff', border: '#dc2626' },
+          { bg: '#3b82f6', text: '#ffffff', border: '#2563eb' },
+          { bg: '#eab308', text: '#000000', border: '#ca8a04' },
+          { bg: '#22c55e', text: '#ffffff', border: '#16a34a' },
+          { bg: '#f97316', text: '#ffffff', border: '#ea580c' },
+          { bg: '#ec4899', text: '#ffffff', border: '#db2777' }
         ];
         return colors[num - 1] || colors[0];
       }
 
-      // 18頭立て基本マッピング
       let waku = 1;
       if (num <= 2) waku = 1;
       else if (num <= 4) waku = 2;
@@ -209,14 +209,14 @@
       else waku = 8;
 
       const wakuColors = {
-        1: { bg: '#ffffff', text: '#000000', border: '#9ca3af' }, // 白
-        2: { bg: '#111827', text: '#ffffff', border: '#374151' }, // 黒
-        3: { bg: '#ef4444', text: '#ffffff', border: '#dc2626' }, // 赤
-        4: { bg: '#3b82f6', text: '#ffffff', border: '#2563eb' }, // 青
-        5: { bg: '#eab308', text: '#000000', border: '#ca8a04' }, // 黄
-        6: { bg: '#22c55e', text: '#ffffff', border: '#16a34a' }, // 緑
-        7: { bg: '#f97316', text: '#ffffff', border: '#ea580c' }, // 橙
-        8: { bg: '#ec4899', text: '#ffffff', border: '#db2777' }  // 桃
+        1: { bg: '#ffffff', text: '#000000', border: '#9ca3af' },
+        2: { bg: '#111827', text: '#ffffff', border: '#374151' },
+        3: { bg: '#ef4444', text: '#ffffff', border: '#dc2626' },
+        4: { bg: '#3b82f6', text: '#ffffff', border: '#2563eb' },
+        5: { bg: '#eab308', text: '#000000', border: '#ca8a04' },
+        6: { bg: '#22c55e', text: '#ffffff', border: '#16a34a' },
+        7: { bg: '#f97316', text: '#ffffff', border: '#ea580c' },
+        8: { bg: '#ec4899', text: '#ffffff', border: '#db2777' }
       };
 
       return wakuColors[waku];
@@ -225,10 +225,11 @@
     // アプリ状態管理
     const state = {
       totalHorses: 18,
-      fastFinishMap: {}, // num -> boolean (上がり目印)
+      selectedHorse: null, // タップ選択中の馬番
+      fastFinishMap: {},
       positions: {
-        start: {},   // num -> { x: percentage, y: percentage }
-        corner4: {}  // num -> { x: percentage, y: percentage }
+        start: {},
+        corner4: {}
       }
     };
 
@@ -238,22 +239,21 @@
     const boardCorner4El = document.getElementById('board-corner4');
     const horseCountSelect = document.getElementById('horse-count');
 
-    // 初期化
     function initApp() {
       state.totalHorses = parseInt(horseCountSelect.value, 10);
+      state.selectedHorse = null;
       renderPool();
       renderBoard('start');
       renderBoard('corner4');
     }
 
-    // パレット再描画
+    // パレット描画
     function renderPool() {
       horsePoolEl.innerHTML = '';
       for (let i = 1; i <= state.totalHorses; i++) {
         const isPlacedStart = !!state.positions.start[i];
         const isPlacedCorner4 = !!state.positions.corner4[i];
         
-        // 両方のボードに配置されていたらパレットからは非表示
         if (isPlacedStart && isPlacedCorner4) continue;
 
         const badgeWrapper = createPoolBadge(i);
@@ -261,13 +261,14 @@
       }
     }
 
-    // パレット用の馬バッジ要素生成
+    // パレット用バッジ作成
     function createPoolBadge(num) {
       const color = getWakuColor(num, state.totalHorses);
       const isFast = !!state.fastFinishMap[num];
+      const isSelected = state.selectedHorse === num;
 
       const container = document.createElement('div');
-      container.className = 'relative flex flex-col items-center group cursor-pointer';
+      container.className = 'relative flex flex-col items-center group touch-action-none';
 
       // 上がり（🔥）切り替えボタン
       const fireBtn = document.createElement('button');
@@ -275,36 +276,39 @@
         isFast ? 'bg-red-600 text-white shadow-sm shadow-red-500' : 'bg-slate-700 text-slate-400 hover:text-white'
       }`;
       fireBtn.innerHTML = isFast ? '🔥上がり' : '🔥';
-      fireBtn.title = '末脚/上がりマークを切替';
       fireBtn.onclick = (e) => {
         e.stopPropagation();
         toggleFastFinish(num);
       };
 
-      // 馬番本体バッジ
+      // 馬番バッジ本体
       const badge = document.createElement('div');
-      badge.className = `w-10 h-10 rounded-full flex items-center justify-center font-black text-base badge-shadow border-2 transition-transform active:scale-95 ${
+      badge.className = `w-10 h-10 rounded-full flex items-center justify-center font-black text-base badge-shadow border-2 transition-transform active:scale-95 touch-action-none ${
         isFast ? 'fast-finish-glow' : ''
-      }`;
+      } ${isSelected ? 'ring-4 ring-amber-400 scale-110' : ''}`;
       badge.style.backgroundColor = color.bg;
       badge.style.color = color.text;
       badge.style.borderColor = isFast ? '#ef4444' : color.border;
       badge.innerText = num;
 
-      // タップで自動配置
-      container.onclick = () => {
-        autoPlaceBadge(num);
+      // タップで選択/解除
+      container.onclick = (e) => {
+        if (state.selectedHorse === num) {
+          state.selectedHorse = null;
+        } else {
+          state.selectedHorse = num;
+        }
+        renderPool();
       };
 
-      // ドラッグ可能にする
-      setupDragEvents(container, num, true);
+      // タッチ/マウスドラッグ処理
+      setupTouchDrag(badge, num, true);
 
       container.appendChild(fireBtn);
       container.appendChild(badge);
       return container;
     }
 
-    // 上がりマーク切り替え
     function toggleFastFinish(num) {
       state.fastFinishMap[num] = !state.fastFinishMap[num];
       renderPool();
@@ -312,34 +316,10 @@
       renderBoard('corner4');
     }
 
-    // 自動配置（空いている方のボードへ）
-    function autoPlaceBadge(num) {
-      const isStartPlaced = !!state.positions.start[num];
-      const isCorner4Placed = !!state.positions.corner4[num];
-
-      let targetBoard = null;
-      if (!isStartPlaced) targetBoard = 'start';
-      else if (!isCorner4Placed) targetBoard = 'corner4';
-
-      if (!targetBoard) return;
-
-      // 脚質に応じたデフォルト配置（右向き: 右＝逃げ、左＝追込）
-      // 例: 1〜4番手は差し・追込、後半は先行・逃げ
-      const step = (num - 1) / (state.totalHorses - 1 || 1);
-      const defaultX = Math.max(10, Math.min(90, 85 - step * 70)); // 右(85) -> 左(15)
-      const defaultY = Math.max(15, Math.min(85, 20 + (num % 5) * 15)); // 内 -> 外
-
-      state.positions[targetBoard][num] = { x: defaultX, y: defaultY };
-      
-      renderPool();
-      renderBoard(targetBoard);
-    }
-
     // ボード描画
     function renderBoard(boardType) {
       const boardEl = boardType === 'start' ? boardStartEl : boardCorner4El;
       
-      // 既存コマの削除
       const oldBadges = boardEl.querySelectorAll('.board-horse-badge');
       oldBadges.forEach(el => el.remove());
 
@@ -352,7 +332,7 @@
         const isFast = !!state.fastFinishMap[num];
 
         const badge = document.createElement('div');
-        badge.className = `board-horse-badge absolute w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center font-black text-sm sm:text-base badge-shadow border-2 cursor-grab active:cursor-grabbing touch-none z-10 transition-shadow ${
+        badge.className = `board-horse-badge absolute w-10 h-10 rounded-full flex items-center justify-center font-black text-sm sm:text-base badge-shadow border-2 cursor-grab active:cursor-grabbing touch-action-none z-10 transition-shadow ${
           isFast ? 'fast-finish-glow' : ''
         }`;
         badge.style.backgroundColor = color.bg;
@@ -362,61 +342,76 @@
         badge.style.top = `${pos.y}%`;
         badge.style.transform = 'translate(-50%, -50%)';
 
-        // 馬番＋上がりアイコン
         badge.innerHTML = isFast ? `${num}<span class="absolute -top-2 -right-1 text-xs">🔥</span>` : num;
 
-        // ボード上のコマの操作イベントを設定
         setupBadgeInteractions(badge, num, boardType);
 
         boardEl.appendChild(badge);
       });
     }
 
-    // ボード上のコマの各種操作（タップで🔥切り替え / ダブルタップで回収 / ドラッグ移動）
+    // ボードタップで選択中の馬番を直接配置
+    [boardStartEl, boardCorner4El].forEach(boardEl => {
+      boardEl.addEventListener('click', (e) => {
+        if (e.target.closest('.board-horse-badge')) return; // 馬番本体タップは除外
+        
+        if (state.selectedHorse) {
+          const num = state.selectedHorse;
+          const rect = boardEl.getBoundingClientRect();
+          const xPercent = Math.max(5, Math.min(95, ((e.clientX - rect.left) / rect.width) * 100));
+          const yPercent = Math.max(5, Math.min(95, ((e.clientY - rect.top) / rect.height) * 100));
+
+          const boardType = boardEl.dataset.boardType;
+          state.positions[boardType][num] = { x: xPercent, y: yPercent };
+          state.selectedHorse = null;
+
+          renderPool();
+          renderBoard(boardType);
+        }
+      });
+    });
+
+    // ボード上のコマのインタラクション
     function setupBadgeInteractions(badge, num, boardType) {
       let clickTimer = null;
       let clickCount = 0;
 
-      // シングルタップ/ダブルタップの判定
-      const handleTap = () => {
+      badge.addEventListener('click', (e) => {
+        e.stopPropagation();
         clickCount++;
         if (clickCount === 1) {
           clickTimer = setTimeout(() => {
-            // シングルタップ: 上がり目印（🔥）のON/OFF切り替え
+            // 1回タップ: 上がり（🔥）ON/OFF
             toggleFastFinish(num);
             clickCount = 0;
           }, 250);
         } else if (clickCount === 2) {
-          // ダブルタップ/ダブルクリック: パレットへ返却
+          // ダブルタップ: 回収
           clearTimeout(clickTimer);
           clickCount = 0;
           delete state.positions[boardType][num];
           renderPool();
           renderBoard(boardType);
         }
-      };
-
-      badge.addEventListener('click', (e) => {
-        e.stopPropagation();
-        handleTap();
       });
 
-      // ドラッグ機能の統合
-      setupDragEvents(badge, num, false, boardType);
+      setupTouchDrag(badge, num, false, boardType);
     }
 
-    // マウス/タッチドラッグ共通処理
-    function setupDragEvents(element, num, isFromPool, boardType = null) {
+    // スマホ・PC共通のシームレスなドラッグ＆ドロップ処理
+    function setupTouchDrag(element, num, isFromPool, sourceBoardType = null) {
       let isDragging = false;
-      let startX, startY;
-      let currentBoard = boardType;
+      let targetBoard = null;
+
+      const getTouchPos = (e) => {
+        if (e.touches && e.touches.length > 0) {
+          return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+        }
+        return { x: e.clientX, y: e.clientY };
+      };
 
       const onStart = (e) => {
         isDragging = false;
-        const touch = e.touches ? e.touches[0] : e;
-        startX = touch.clientX;
-        startY = touch.clientY;
-
         document.addEventListener('mousemove', onMove);
         document.addEventListener('mouseup', onEnd);
         document.addEventListener('touchmove', onMove, { passive: false });
@@ -424,35 +419,32 @@
       };
 
       const onMove = (e) => {
-        const touch = e.touches ? e.touches[0] : e;
-        const dx = touch.clientX - startX;
-        const dy = touch.clientY - startY;
+        const pos = getTouchPos(e);
+        isDragging = true;
 
-        if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
-          isDragging = true;
-          if (e.cancelable) e.preventDefault();
-        }
+        if (e.cancelable) e.preventDefault(); // スクロール防止
 
-        if (!isDragging) return;
+        const boardEl = getBoardUnderPoint(pos.x, pos.y);
+        if (boardEl) {
+          targetBoard = boardEl;
+          const rect = boardEl.getBoundingClientRect();
+          const xPercent = Math.max(5, Math.min(95, ((pos.x - rect.left) / rect.width) * 100));
+          const yPercent = Math.max(5, Math.min(95, ((pos.y - rect.top) / rect.height) * 100));
 
-        // ドロップ先のターゲットボードを取得
-        const targetBoardEl = getBoardUnderPoint(touch.clientX, touch.clientY);
-        if (targetBoardEl) {
-          const rect = targetBoardEl.getBoundingClientRect();
-          const xPercent = Math.max(5, Math.min(95, ((touch.clientX - rect.left) / rect.width) * 100));
-          const yPercent = Math.max(5, Math.min(95, ((touch.clientY - rect.top) / rect.height) * 100));
+          const boardType = boardEl.dataset.boardType;
+          state.positions[boardType][num] = { x: xPercent, y: yPercent };
 
-          const targetType = targetBoardEl.dataset.boardType;
-          state.positions[targetType][num] = { x: xPercent, y: yPercent };
-          
           if (isFromPool) {
             renderPool();
           }
-          renderBoard(targetType);
+          renderBoard(boardType);
         }
       };
 
       const onEnd = () => {
+        if (isDragging) {
+          state.selectedHorse = null;
+        }
         document.removeEventListener('mousemove', onMove);
         document.removeEventListener('mouseup', onEnd);
         document.removeEventListener('touchmove', onMove);
@@ -463,7 +455,7 @@
       element.addEventListener('touchstart', onStart, { passive: true });
     }
 
-    // 座標直下のボード要素を検出
+    // 指定座標直下のボード要素を取得
     function getBoardUnderPoint(x, y) {
       const startRect = boardStartEl.getBoundingClientRect();
       if (x >= startRect.left && x <= startRect.right && y >= startRect.top && y <= startRect.bottom) {
@@ -476,61 +468,44 @@
       return null;
     }
 
-    // --- コントロールアクション ---
+    // コントロール
+    horseCountSelect.addEventListener('change', initApp);
 
-    // 頭数変更
-    horseCountSelect.addEventListener('change', () => {
-      initApp();
-    });
-
-    // スタート位置を4コーナーへ複製
     document.getElementById('btn-sync').addEventListener('click', () => {
       state.positions.corner4 = JSON.parse(JSON.stringify(state.positions.start));
       renderPool();
       renderBoard('corner4');
     });
 
-    // ハイペース展開プリセット（隊列が縦長・逃げ先行が前傾）
-    document.getElementById('btn-preset-high').addEventListener('click', () => {
-      applyPreset('high');
-    });
+    document.getElementById('btn-preset-high').addEventListener('click', () => applyPreset('high'));
+    document.getElementById('btn-preset-slow').addEventListener('click', () => applyPreset('slow'));
 
-    // スローペース展開プリセット（隊列が凝縮・スパート勝負）
-    document.getElementById('btn-preset-slow').addEventListener('click', () => {
-      applyPreset('slow');
-    });
-
-    // リセット
     document.getElementById('btn-reset').addEventListener('click', () => {
       state.positions.start = {};
       state.positions.corner4 = {};
       state.fastFinishMap = {};
+      state.selectedHorse = null;
       renderPool();
       renderBoard('start');
       renderBoard('corner4');
     });
 
-    // 展開プリセット適用ロジック
     function applyPreset(type) {
       state.positions.start = {};
       state.positions.corner4 = {};
-
       const count = state.totalHorses;
+
       for (let i = 1; i <= count; i++) {
-        // ハイペース: 縦長に長く伸びる
-        // スローペース: 右側（前線）に固まる
         const ratio = (i - 1) / (count - 1 || 1);
-        
         let startX, cornerX;
         if (type === 'high') {
-          startX = 90 - ratio * 75;  // 90%〜15%
+          startX = 90 - ratio * 75;
           cornerX = 85 - ratio * 70;
         } else {
-          startX = 80 - ratio * 45;  // 80%〜35% に凝縮
+          startX = 80 - ratio * 45;
           cornerX = 75 - ratio * 40;
         }
-
-        const yPos = 20 + ((i * 3) % 65); // 内外に分散
+        const yPos = 20 + ((i * 3) % 65);
 
         state.positions.start[i] = { x: startX, y: yPos };
         state.positions.corner4[i] = { x: cornerX, y: yPos };
@@ -541,7 +516,6 @@
       renderBoard('corner4');
     }
 
-    // アプリ起動
     window.addEventListener('DOMContentLoaded', initApp);
     initApp();
   </script>
