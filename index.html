@@ -6,10 +6,6 @@
   <title>競馬展開予想プレディクトボード</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    /* スマホでの画面スクロール・拡大縮小干渉を防止 */
-    body {
-      touch-action: manipulation;
-    }
     .board-grid {
       background-size: 40px 40px;
       background-image: 
@@ -23,13 +19,10 @@
       box-shadow: 0 0 12px 2px #ef4444, inset 0 0 4px #fef08a;
       border-color: #ef4444 !important;
     }
-    .touch-action-none {
-      touch-action: none;
-    }
-    /* パレットで選択中のハイライト */
-    .selected-badge {
-      ring: 4px;
-      ring-color: #f59e0b;
+    /* 選択中リングアニメーション */
+    .selected-ring {
+      outline: 4px solid #f59e0b;
+      outline-offset: 2px;
       transform: scale(1.15);
     }
   </style>
@@ -77,6 +70,11 @@
       </div>
     </div>
   </header>
+
+  <!-- ガイドメッセージ -->
+  <div id="guide-msg" class="bg-amber-500/20 text-amber-300 text-xs text-center py-1.5 px-3 border-b border-amber-500/30 font-medium">
+    💡 馬番をタップで選択 ➔ 配置したいボード上の場所をタップしてください
+  </div>
 
   <!-- メインコンテンツ -->
   <main class="flex-1 max-w-7xl w-full mx-auto p-2 sm:p-4 flex flex-col gap-4">
@@ -171,11 +169,11 @@
       <div class="flex items-center justify-between mb-2">
         <h3 class="font-bold text-sm text-slate-300 flex items-center gap-2">
           <span>🐴</span> 馬番パレット 
-          <span class="text-xs font-normal text-amber-300">（スライド移動 or タップ選択➔ボードをタップして配置）</span>
+          <span id="selected-info" class="text-xs font-normal text-amber-400">（タップで選択してください）</span>
         </h3>
       </div>
       <!-- 馬番並び -->
-      <div id="horse-pool" class="flex flex-wrap gap-2 justify-center sm:justify-start min-h-[56px] items-center p-2 bg-slate-900/50 rounded-lg border border-slate-700/60 touch-action-none">
+      <div id="horse-pool" class="flex flex-wrap gap-2 justify-center sm:justify-start min-h-[56px] items-center p-2 bg-slate-900/50 rounded-lg border border-slate-700/60">
       </div>
     </section>
 
@@ -225,7 +223,8 @@
     // アプリ状態管理
     const state = {
       totalHorses: 18,
-      selectedHorse: null, // タップ選択中の馬番
+      selectedHorse: null, // 現在タップ選択中の馬番 (1~18)
+      selectedFromBoard: null, // ボード上から選択した場合 { boardType, num }
       fastFinishMap: {},
       positions: {
         start: {},
@@ -238,13 +237,27 @@
     const boardStartEl = document.getElementById('board-start');
     const boardCorner4El = document.getElementById('board-corner4');
     const horseCountSelect = document.getElementById('horse-count');
+    const selectedInfoEl = document.getElementById('selected-info');
+    const guideMsgEl = document.getElementById('guide-msg');
 
     function initApp() {
       state.totalHorses = parseInt(horseCountSelect.value, 10);
       state.selectedHorse = null;
+      state.selectedFromBoard = null;
+      updateGuideText();
       renderPool();
       renderBoard('start');
       renderBoard('corner4');
+    }
+
+    function updateGuideText() {
+      if (state.selectedHorse) {
+        selectedInfoEl.innerText = `（${state.selectedHorse}番 選択中 ➔ 配置場所をタップ）`;
+        guideMsgEl.innerText = `💡 [${state.selectedHorse}番] を選択中！ボード上の配置したい場所をタップしてください`;
+      } else {
+        selectedInfoEl.innerText = `（タップで選択してください）`;
+        guideMsgEl.innerText = `💡 馬番をタップで選択 ➔ 配置したいボード上の場所をタップしてください`;
+      }
     }
 
     // パレット描画
@@ -254,6 +267,7 @@
         const isPlacedStart = !!state.positions.start[i];
         const isPlacedCorner4 = !!state.positions.corner4[i];
         
+        // 両方のボードに配置されていたらパレットからは非表示
         if (isPlacedStart && isPlacedCorner4) continue;
 
         const badgeWrapper = createPoolBadge(i);
@@ -268,9 +282,9 @@
       const isSelected = state.selectedHorse === num;
 
       const container = document.createElement('div');
-      container.className = 'relative flex flex-col items-center group touch-action-none';
+      container.className = 'relative flex flex-col items-center';
 
-      // 上がり（🔥）切り替えボタン
+      // 上がり（🔥）ボタン
       const fireBtn = document.createElement('button');
       fireBtn.className = `text-[10px] px-1 py-0.2 rounded font-bold mb-1 transition-all ${
         isFast ? 'bg-red-600 text-white shadow-sm shadow-red-500' : 'bg-slate-700 text-slate-400 hover:text-white'
@@ -283,26 +297,28 @@
 
       // 馬番バッジ本体
       const badge = document.createElement('div');
-      badge.className = `w-10 h-10 rounded-full flex items-center justify-center font-black text-base badge-shadow border-2 transition-transform active:scale-95 touch-action-none ${
+      badge.className = `w-10 h-10 rounded-full flex items-center justify-center font-black text-base badge-shadow border-2 transition-transform cursor-pointer ${
         isFast ? 'fast-finish-glow' : ''
-      } ${isSelected ? 'ring-4 ring-amber-400 scale-110' : ''}`;
+      } ${isSelected ? 'selected-ring' : ''}`;
       badge.style.backgroundColor = color.bg;
       badge.style.color = color.text;
       badge.style.borderColor = isFast ? '#ef4444' : color.border;
       badge.innerText = num;
 
-      // タップで選択/解除
-      container.onclick = (e) => {
+      // タップで選択/選択解除
+      badge.onclick = (e) => {
+        e.stopPropagation();
         if (state.selectedHorse === num) {
           state.selectedHorse = null;
         } else {
           state.selectedHorse = num;
+          state.selectedFromBoard = null;
         }
+        updateGuideText();
         renderPool();
+        renderBoard('start');
+        renderBoard('corner4');
       };
-
-      // タッチ/マウスドラッグ処理
-      setupTouchDrag(badge, num, true);
 
       container.appendChild(fireBtn);
       container.appendChild(badge);
@@ -330,11 +346,12 @@
         const pos = boardPositions[num];
         const color = getWakuColor(num, state.totalHorses);
         const isFast = !!state.fastFinishMap[num];
+        const isSelected = state.selectedHorse === num;
 
         const badge = document.createElement('div');
-        badge.className = `board-horse-badge absolute w-10 h-10 rounded-full flex items-center justify-center font-black text-sm sm:text-base badge-shadow border-2 cursor-grab active:cursor-grabbing touch-action-none z-10 transition-shadow ${
+        badge.className = `board-horse-badge absolute w-10 h-10 rounded-full flex items-center justify-center font-black text-sm sm:text-base badge-shadow border-2 cursor-pointer z-10 transition-transform ${
           isFast ? 'fast-finish-glow' : ''
-        }`;
+        } ${isSelected ? 'selected-ring' : ''}`;
         badge.style.backgroundColor = color.bg;
         badge.style.color = color.text;
         badge.style.borderColor = isFast ? '#ef4444' : color.border;
@@ -344,131 +361,62 @@
 
         badge.innerHTML = isFast ? `${num}<span class="absolute -top-2 -right-1 text-xs">🔥</span>` : num;
 
-        setupBadgeInteractions(badge, num, boardType);
+        // ボード上のコマのタップイベント
+        badge.onclick = (e) => {
+          e.stopPropagation();
+          // すでに選択中のコマをもう一度タップした場合は回収（パレットへ返す）
+          if (state.selectedHorse === num) {
+            delete state.positions[boardType][num];
+            state.selectedHorse = null;
+          } else {
+            // タップで選択
+            state.selectedHorse = num;
+            state.selectedFromBoard = { boardType, num };
+          }
+          updateGuideText();
+          renderPool();
+          renderBoard('start');
+          renderBoard('corner4');
+        };
 
         boardEl.appendChild(badge);
       });
     }
 
-    // ボードタップで選択中の馬番を直接配置
+    // ボード領域タップで選択中の馬番をその位置に配置
     [boardStartEl, boardCorner4El].forEach(boardEl => {
-      boardEl.addEventListener('click', (e) => {
-        if (e.target.closest('.board-horse-badge')) return; // 馬番本体タップは除外
-        
+      boardEl.onclick = (e) => {
+        // コマ自体のタップは除く
+        if (e.target.closest('.board-horse-badge')) return;
+
         if (state.selectedHorse) {
           const num = state.selectedHorse;
           const rect = boardEl.getBoundingClientRect();
+          
+          // タップ位置のパーセンテージ計算
           const xPercent = Math.max(5, Math.min(95, ((e.clientX - rect.left) / rect.width) * 100));
           const yPercent = Math.max(5, Math.min(95, ((e.clientY - rect.top) / rect.height) * 100));
 
           const boardType = boardEl.dataset.boardType;
+
+          // 前に配置されていた場所があれば削除（再配置の場合）
+          if (state.selectedFromBoard && state.selectedFromBoard.boardType === boardType) {
+            delete state.positions[boardType][num];
+          }
+
           state.positions[boardType][num] = { x: xPercent, y: yPercent };
           state.selectedHorse = null;
+          state.selectedFromBoard = null;
 
+          updateGuideText();
           renderPool();
-          renderBoard(boardType);
+          renderBoard('start');
+          renderBoard('corner4');
         }
-      });
+      };
     });
 
-    // ボード上のコマのインタラクション
-    function setupBadgeInteractions(badge, num, boardType) {
-      let clickTimer = null;
-      let clickCount = 0;
-
-      badge.addEventListener('click', (e) => {
-        e.stopPropagation();
-        clickCount++;
-        if (clickCount === 1) {
-          clickTimer = setTimeout(() => {
-            // 1回タップ: 上がり（🔥）ON/OFF
-            toggleFastFinish(num);
-            clickCount = 0;
-          }, 250);
-        } else if (clickCount === 2) {
-          // ダブルタップ: 回収
-          clearTimeout(clickTimer);
-          clickCount = 0;
-          delete state.positions[boardType][num];
-          renderPool();
-          renderBoard(boardType);
-        }
-      });
-
-      setupTouchDrag(badge, num, false, boardType);
-    }
-
-    // スマホ・PC共通のシームレスなドラッグ＆ドロップ処理
-    function setupTouchDrag(element, num, isFromPool, sourceBoardType = null) {
-      let isDragging = false;
-      let targetBoard = null;
-
-      const getTouchPos = (e) => {
-        if (e.touches && e.touches.length > 0) {
-          return { x: e.touches[0].clientX, y: e.touches[0].clientY };
-        }
-        return { x: e.clientX, y: e.clientY };
-      };
-
-      const onStart = (e) => {
-        isDragging = false;
-        document.addEventListener('mousemove', onMove);
-        document.addEventListener('mouseup', onEnd);
-        document.addEventListener('touchmove', onMove, { passive: false });
-        document.addEventListener('touchend', onEnd);
-      };
-
-      const onMove = (e) => {
-        const pos = getTouchPos(e);
-        isDragging = true;
-
-        if (e.cancelable) e.preventDefault(); // スクロール防止
-
-        const boardEl = getBoardUnderPoint(pos.x, pos.y);
-        if (boardEl) {
-          targetBoard = boardEl;
-          const rect = boardEl.getBoundingClientRect();
-          const xPercent = Math.max(5, Math.min(95, ((pos.x - rect.left) / rect.width) * 100));
-          const yPercent = Math.max(5, Math.min(95, ((pos.y - rect.top) / rect.height) * 100));
-
-          const boardType = boardEl.dataset.boardType;
-          state.positions[boardType][num] = { x: xPercent, y: yPercent };
-
-          if (isFromPool) {
-            renderPool();
-          }
-          renderBoard(boardType);
-        }
-      };
-
-      const onEnd = () => {
-        if (isDragging) {
-          state.selectedHorse = null;
-        }
-        document.removeEventListener('mousemove', onMove);
-        document.removeEventListener('mouseup', onEnd);
-        document.removeEventListener('touchmove', onMove);
-        document.removeEventListener('touchend', onEnd);
-      };
-
-      element.addEventListener('mousedown', onStart);
-      element.addEventListener('touchstart', onStart, { passive: true });
-    }
-
-    // 指定座標直下のボード要素を取得
-    function getBoardUnderPoint(x, y) {
-      const startRect = boardStartEl.getBoundingClientRect();
-      if (x >= startRect.left && x <= startRect.right && y >= startRect.top && y <= startRect.bottom) {
-        return boardStartEl;
-      }
-      const corner4Rect = boardCorner4El.getBoundingClientRect();
-      if (x >= corner4Rect.left && x <= corner4Rect.right && y >= corner4Rect.top && y <= corner4Rect.bottom) {
-        return boardCorner4El;
-      }
-      return null;
-    }
-
-    // コントロール
+    // コントロール定義
     horseCountSelect.addEventListener('change', initApp);
 
     document.getElementById('btn-sync').addEventListener('click', () => {
@@ -485,6 +433,8 @@
       state.positions.corner4 = {};
       state.fastFinishMap = {};
       state.selectedHorse = null;
+      state.selectedFromBoard = null;
+      updateGuideText();
       renderPool();
       renderBoard('start');
       renderBoard('corner4');
@@ -511,6 +461,9 @@
         state.positions.corner4[i] = { x: cornerX, y: yPos };
       }
 
+      state.selectedHorse = null;
+      state.selectedFromBoard = null;
+      updateGuideText();
       renderPool();
       renderBoard('start');
       renderBoard('corner4');
